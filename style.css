@@ -428,3 +428,41 @@ body {
   .search-label { display: none; }
   .search-toggle { padding: 0 9px; }
 }
+
+/* ---------- Diagnostics ---------- */
+
+.diag-row {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.diag-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.diag-btn:hover { background: var(--accent-soft); }
+
+.diag-out {
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: #1c1c1a;
+  color: #d8f0e3;
+  font-size: 11.5px;
+  line-height: 1.7;
+  direction: ltr;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 220px;
+  overflow: auto;
+}

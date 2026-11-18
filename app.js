@@ -32,6 +32,8 @@ const el = {
   notice:      document.getElementById("notice"),
   searchToggle:document.getElementById("searchToggle"),
   searchState: document.getElementById("searchState"),
+  diagBtn:     document.getElementById("diagBtn"),
+  diagOut:     document.getElementById("diagOut"),
 };
 
 const STORE_KEY  = "mirath.apiKey";
@@ -75,6 +77,57 @@ function evaluateNotice(hasKey) {
       "في النزيف الشديد أو إصابة الانفجار — اذهب للطبيب أو اطلب إسعافًا فورًا.";
   }
 }
+
+/* ---------------- تشخيص الاتصال ---------------- */
+
+/* يطلب قائمة الموديلات المتاحة لهذا المفتاح — لا يستهلك توكنات inference،
+   فيكشف إن كان المفتاح صالحًا، وأي الموديلات فعلاً مفتوحة للحساب. */
+async function runDiagnostics() {
+  const key = (localStorage.getItem(STORE_KEY) || "").trim();
+  const out = el.diagOut;
+  out.hidden = false;
+  out.textContent = "جارٍ الفحص…";
+
+  if (!key) {
+    out.textContent = "لا يوجد مفتاح. أدخله ثم اضغط حفظ أولًا.";
+    return;
+  }
+
+  const lines = [];
+  lines.push("key: " + key.slice(0, 6) + "..." + key.slice(-4) + "  (" + key.length + " حرفًا)");
+
+  try {
+    const r = await fetch(`${API_URL}?key=${encodeURIComponent(key)}&pageSize=200`);
+    const j = await r.json().catch(() => ({}));
+
+    if (!r.ok) {
+      lines.push("models.list: HTTP " + r.status);
+      if (j.error && j.error.message) lines.push(j.error.message);
+      out.textContent = lines.join("\n");
+      return;
+    }
+
+    lines.push("models.list: OK");
+    const names = (j.models || [])
+      .filter((m) => (m.supportedGenerationMethods || []).includes("generateContent"))
+      .map((m) => m.name.replace("models/", ""))
+      .filter((n) => /gemini/.test(n));
+
+    lines.push("متاح للـ generateContent: " + names.length);
+    lines.push("");
+    MODEL_FALLBACKS.forEach((m) => {
+      lines.push((names.includes(m) ? "  متاح   " : "  غير متاح ") + m);
+    });
+    lines.push("");
+    lines.push("الموديل المختار: " + (localStorage.getItem(MODEL_KEY) || "—"));
+  } catch (e) {
+    lines.push("خطأ شبكة: " + e.message);
+  }
+
+  out.textContent = lines.join("\n");
+}
+
+if (el.diagBtn) el.diagBtn.addEventListener("click", runDiagnostics);
 
 /* ---------------- البحث في الإنترنت ---------------- */
 
@@ -298,18 +351,31 @@ function setBusy(state) {
   el.input.disabled = state;
 }
 
-function buildBody() {
+/* نرسل آخر N رسالة فقط. التعليمات ثقيلة (~5.5k توكن)، وإرسال كل التاريخ
+   في كل مرة يصطدم بحد TPM (توكنات/دقيقة) بسرعة. */
+const MAX_TURNS = 8;   // 4 تبادلات
+
+function bodyFor(model) {
+  const isGemini3 = /^gemini-(3|4)/.test(model);
+
   const body = {
     system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents: history,
+    contents: history.slice(-MAX_TURNS),
     generationConfig: {
-      temperature: 0.4,
       maxOutputTokens: 2048,
     },
     safetySettings: [
       { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
     ],
   };
+
+  // Gemini 3.x: خفّض التفكير لتقليل التوكنات وزمن الرد.
+  // Gemini 2.5 والأقدم: temperature يعمل، فنضبطه.
+  if (isGemini3) {
+    body.generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  } else {
+    body.generationConfig.temperature = 0.4;
+  }
 
   if (searchEnabled) {
     body.tools = [{ google_search: {} }];
@@ -322,7 +388,12 @@ function buildBody() {
    - الحصة اليومية خلصت  → لا فائدة من إعادة المحاولة الآن (fatal) */
 function rateLimitKind(detail) {
   const d = String(detail || "").toLowerCase();
-  if (d.includes("per day") || d.includes("daily") || d.includes("rpd")) return "daily";
+  // الحصة اليومية أو حصة المشروع — لا فائدة من إعادة المحاولة قريبًا
+  if (d.includes("per day") || d.includes("daily") || d.includes("rpd") ||
+      d.includes("free_tier") || d.includes("quota exceeded") ||
+      d.includes("billing")) {
+    return "daily";
+  }
   return "minute";
 }
 
@@ -342,7 +413,7 @@ async function callModel(key, model) {
   const res = await fetch(`${API_URL}/${model}:generateContent?key=${encodeURIComponent(key)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildBody()),
+    body: JSON.stringify(bodyFor(model)),
   });
 
   if (!res.ok) {
