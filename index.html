@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مِيراث — مساعد العناية الآمنة بالجروح</title>
+<meta name="description" content="مساعد ذكي للإسعاف الأولي للجروح، للناس الذين لا يصلون بسرعة إلى رعاية صحية. يفرز بين الممارسة المثبتة وغير المثبتة، ويلجأ للطب القديم كسياق لا كقرار." />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">م</span>
+    <div>
+      <h1>مِيراث</h1>
+      <p class="tagline">مساعد العناية الآمنة بالجروح</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="searchToggle" class="search-toggle on" aria-pressed="true"
+            title="البحث في الإنترنت">
+      <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.9"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <span class="search-label">بحث</span>
+      <span id="searchState" class="search-state">مفعّل</span>
+    </button>
+    <button id="settingsBtn" class="icon-btn" title="الإعدادات" aria-label="الإعدادات">
+      <svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div id="notice" class="notice" hidden>
+  <strong>تنبيه:</strong> مِيراث مساعد أولي وليس طبيبًا. لا يشخّص ولا يصف دواءً.
+  في النزيف الشديد أو إصابة الانفجار — اذهب للطبيب أو اطلب إسعافًا فورًا.
+</div>
+
+<main id="chat" class="chat" aria-live="polite">
+  <div class="msg bot">
+    <div class="bubble">
+      <p>سلامتك. أنا مِيراث — أساعدك في العناية بالجرح خطوة بخطوة.</p>
+      <p>اكتب لي ما حدث، أو ارفع صورة للجرح.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="composer">
+  <div id="preview" class="preview" hidden>
+    <img id="previewImg" alt="معاينة الصورة" />
+    <button id="removeImg" class="remove-img" aria-label="إزالة الصورة">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+  </div>
+
+  <form id="form" class="input-row">
+    <label class="file-btn" title="إرفاق صورة">
+      <input type="file" id="fileInput" accept="image/*" hidden />
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+    </label>
+    <textarea id="input" rows="1" placeholder="اكتب ما حدث…" autocomplete="off"></textarea>
+    <button type="submit" id="sendBtn" class="send-btn">إرسال</button>
+  </form>
+  <p class="footnote">
+    استخدم إعدادات ⚙ لوضع مفتاح API. المفتاح لا يُخزَّن إلا في متصفحك.
+  </p>
+</footer>
+
+<!-- Settings modal -->
+<div id="settings" class="modal" hidden>
+  <div class="modal-card">
+    <h2>الإعدادات</h2>
+    <label for="apiKey">مفتاح Google AI Studio</label>
+    <input id="apiKey" type="password" placeholder="AIza…" autocomplete="off" />
+    <p class="hint">
+      احصل على مفتاح مجاني من
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+      يُحفظ في هذا المتصفح فقط ولا يُرسل لأي جهة غير Google.
+    </p>
+    <label for="modelSel">الموديل</label>
+    <select id="modelSel">
+      <option value="gemini-2.5-flash">gemini-2.5-flash (يدعم الصور)</option>
+      <option value="gemini-2.5-pro">gemini-2.5-pro (أدق، أبطأ)</option>
+      <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+    </select>
+    <div class="modal-actions">
+      <button id="saveSettings" class="primary">حفظ</button>
+      <button id="closeSettings">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script src="prompt.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
