@@ -317,6 +317,15 @@ function buildBody() {
   return body;
 }
 
+/* 429 له سببان مختلفان تمامًا:
+   - حد الطلبات في الدقيقة → ننتظر ونعيد (retryable)
+   - الحصة اليومية خلصت  → لا فائدة من إعادة المحاولة الآن (fatal) */
+function rateLimitKind(detail) {
+  const d = String(detail || "").toLowerCase();
+  if (d.includes("per day") || d.includes("daily") || d.includes("rpd")) return "daily";
+  return "minute";
+}
+
 /* موديل لم يعد متاحًا لهذا الحساب؟ */
 function isRetiredModel(status, detail) {
   const d = String(detail || "").toLowerCase();
@@ -345,6 +354,8 @@ async function callModel(key, model) {
     const err = new Error(mapError(res.status, detail));
     err.status = res.status;
     err.retired = isRetiredModel(res.status, detail);
+    err.rateLimited = res.status === 429;
+    err.rateKind = res.status === 429 ? rateLimitKind(detail) : null;
     throw err;
   }
 
@@ -364,7 +375,26 @@ async function callModel(key, model) {
   return out;
 }
 
+const WAIT_MS = 20000;
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+/* إشعار انتظار داخل المحادثة */
+function showWaiting(on) {
+  const id = "waiting-note";
+  const old = document.getElementById(id);
+  if (old) old.remove();
+  if (!on) return;
+  const d = document.createElement("div");
+  d.id = id;
+  d.className = "msg bot";
+  d.innerHTML = '<div class="bubble">تجاوزنا الحد اللحظي — أنتظر قليلًا ثم أُكمل…</div>';
+  el.chat.appendChild(d);
+  scrollToEnd();
+}
+
 async function callGemini(key, preferredModel) {
+  let attemptedWait = false;
   // جرّب الموديل المختار أولًا، ثم الباقي بالترتيب، بلا تكرار
   const order = [preferredModel, ...MODEL_FALLBACKS.filter((m) => m !== preferredModel)];
 
@@ -383,6 +413,24 @@ async function callGemini(key, preferredModel) {
       return reply;
     } catch (err) {
       lastErr = err;
+
+      // حد الدقيقة: ننتظر ونعيد نفس الموديل مرة واحدة
+      if (err.rateLimited && err.rateKind === "minute" && !attemptedWait) {
+        attemptedWait = true;
+        showWaiting(true);
+        await sleep(WAIT_MS);
+        showWaiting(false);
+        try {
+          return await callModel(key, model);
+        } catch (e2) {
+          lastErr = e2;
+          if (!e2.retired) throw e2;
+        }
+      }
+
+      // حد يومي: لا فائدة من تكرار المحاولة الآن
+      if (err.rateLimited && err.rateKind === "daily") throw err;
+
       if (!err.retired) throw err;   // خطأ حقيقي (مفتاح/شبكة) — لا نجرّب غيره
       sawRetired = true;
     }
@@ -401,7 +449,13 @@ function mapError(status, detail) {
     return "المفتاح غير صحيح. راجع ⚙.";
   }
   if (status === 403) return "المفتاح لا يملك صلاحية على هذا الموديل.";
-  if (status === 429) return "تجاوزت حد الاستخدام. انتظر دقيقة.";
+  if (status === 429) {
+    if (rateLimitKind(detail) === "daily") {
+      return "خلصت الحصة اليومية المجانية لهذا المفتاح. " +
+             "الحل: انتظر حتى منتصف الليل بتوقيت المحيط الهادئ، أو أنشئ مفتاحًا جديدًا من aistudio.google.com/apikey";
+    }
+    return "الحد اللحظي (طلبات في الدقيقة). انتظر ٢٠-٦٠ ثانية ثم أرسل مرة أخرى.";
+  }
   if (status >= 500) return "خدمة Google تتعطّل مؤقتًا. أعد المحاولة.";
   return detail;
 }
