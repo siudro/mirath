@@ -5,6 +5,15 @@
 
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
+/* ترتيب المحاولة. Google تغلق الموديلات القديمة أمام الحسابات الجديدة،
+   فننتقل تلقائيًا إلى التالي بدل أن يتعطّل التطبيق. */
+const MODEL_FALLBACKS = [
+  "gemini-3.8-flash",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-2.5-flash",
+];
+
 const el = {
   chat:        document.getElementById("chat"),
   form:        document.getElementById("form"),
@@ -269,7 +278,7 @@ el.form.addEventListener("submit", async (e) => {
   addTyping();
 
   try {
-    const reply = await callGemini(key, model, parts);
+    const reply = await callGemini(key, model);
     removeTyping();
     addMessage("bot", reply);
     history.push({ role: "model", parts: [{ text: reply }] });
@@ -289,7 +298,7 @@ function setBusy(state) {
   el.input.disabled = state;
 }
 
-async function callGemini(key, model, userParts) {
+function buildBody() {
   const body = {
     system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: history,
@@ -302,15 +311,29 @@ async function callGemini(key, model, userParts) {
     ],
   };
 
-  // البحث في الإنترنت — اختياري، يعمل مع gemini-2.5-*
   if (searchEnabled) {
     body.tools = [{ google_search: {} }];
   }
+  return body;
+}
 
+/* موديل لم يعد متاحًا لهذا الحساب؟ */
+function isRetiredModel(status, detail) {
+  const d = String(detail || "").toLowerCase();
+  return (
+    status === 404 ||
+    d.includes("no longer available") ||
+    d.includes("is not found") ||
+    d.includes("not supported") ||
+    d.includes("deprecated")
+  );
+}
+
+async function callModel(key, model) {
   const res = await fetch(`${API_URL}/${model}:generateContent?key=${encodeURIComponent(key)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(buildBody()),
   });
 
   if (!res.ok) {
@@ -319,15 +342,16 @@ async function callGemini(key, model, userParts) {
       const j = await res.json();
       if (j.error && j.error.message) detail = j.error.message;
     } catch (_) { /* تجاهل */ }
-    throw new Error(mapError(res.status, detail));
+    const err = new Error(mapError(res.status, detail));
+    err.status = res.status;
+    err.retired = isRetiredModel(res.status, detail);
+    throw err;
   }
 
   const data = await res.json();
-
   const candidate = data.candidates && data.candidates[0];
-  if (!candidate) {
-    throw new Error("لم يصل رد من الموديل. أعد المحاولة.");
-  }
+
+  if (!candidate) throw new Error("لم يصل رد من الموديل. أعد المحاولة.");
 
   if (candidate.finishReason === "SAFETY") {
     return "لا أستطيع الإجابة على هذا الطلب. إن كان الجرح خطيرًا فأقرب خطوة هي طلب رعاية طبية.";
@@ -338,6 +362,38 @@ async function callGemini(key, model, userParts) {
 
   if (!out) throw new Error("الرد كان فارغًا. أعد المحاولة.");
   return out;
+}
+
+async function callGemini(key, preferredModel) {
+  // جرّب الموديل المختار أولًا، ثم الباقي بالترتيب، بلا تكرار
+  const order = [preferredModel, ...MODEL_FALLBACKS.filter((m) => m !== preferredModel)];
+
+  let lastErr = null;
+  let sawRetired = false;
+
+  for (const model of order) {
+    try {
+      const reply = await callModel(key, model);
+
+      // نجح — ثبّت الموديل العامل حتى لا نعيد المحاولة كل رسالة
+      if (model !== preferredModel) {
+        localStorage.setItem(MODEL_KEY, model);
+        el.modelSel.value = model;
+      }
+      return reply;
+    } catch (err) {
+      lastErr = err;
+      if (!err.retired) throw err;   // خطأ حقيقي (مفتاح/شبكة) — لا نجرّب غيره
+      sawRetired = true;
+    }
+  }
+
+  if (sawRetired) {
+    throw new Error(
+      "الموديلات المتاحة لك غير مدعومة من هذه النسخة. افتح ⚙ وجرّب موديلًا آخر."
+    );
+  }
+  throw lastErr || new Error("تعذّر الاتصال.");
 }
 
 function mapError(status, detail) {
