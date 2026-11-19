@@ -256,8 +256,29 @@ async function runDiagnostics() {
     lines.push("");
     lines.push(`الموديل المختار: ${el.modelSel.value}`);
   } catch (e) {
+    const raw = (e && e.message) || String(e);
+    const netFail =
+      e instanceof TypeError ||
+      /failed to fetch|networkerror|load failed|network request failed/i.test(raw);
+
     lines.push("models.list: فشل");
-    lines.push(e.message);
+    lines.push("");
+    if (netFail) {
+      lines.push("النوع: حجب شبكة — الطلب لم يخرج من المتصفح أصلًا.");
+      lines.push("");
+      lines.push("هذا ليس خطأ في المفتاح ولا في الرصيد.");
+      lines.push("الحل بالترتيب:");
+      lines.push("  1. أوقف مانع الإعلانات لهذا الموقع (AdBlock / uBlock)");
+      lines.push("  2. أوقف VPN إن كان مفتوحًا");
+      lines.push("  3. جرّب شبكة أخرى (بيانات الجوال)");
+      lines.push("  4. جرّب نافذة تصفح خاصة (Incognito)");
+      lines.push("  5. تأكد أن الصفحة تُفتح على http://localhost:8000 لا file://");
+    } else {
+      lines.push("النوع: رفض من الخادم — الطلب وصل ورجع بخطأ.");
+      lines.push(raw);
+      lines.push("");
+      lines.push("راجع المفتاح في لوحة المزوّد، والرصيد المتبقي.");
+    }
   }
 
   out.textContent = lines.join("\n");
@@ -425,7 +446,7 @@ el.form.addEventListener("submit", async (e) => {
     history.push({ role: "model", parts: [{ text: reply }] });
   } catch (err) {
     removeTyping();
-    addMessage("error", err.message);
+    addMessage("error", explainFetch(err, provider));
     history.pop();
   } finally {
     setBusy(false);
@@ -481,6 +502,39 @@ async function chatWith(provider, key, model) {
   const reply = provider.readReply(json);
   if (!reply) throw new Error("لم يصل رد من الموديل. أعد المحاولة.");
   return reply;
+}
+
+
+/* ---------------- تفسير أخطاء الشبكة ---------------- */
+
+// fetch يرمي TypeError بنص "Failed to fetch" حين يمنع المتصفح الطلب
+// قبل وصوله للشبكة: اتصال مقطوع، مانع إعلانات، أو حجب CORS/امتداد.
+function explainFetch(err, provider) {
+  const msg = (err && err.message) || String(err);
+  const isFetchFail =
+    err instanceof TypeError ||
+    /failed to fetch|networkerror|load failed|network request failed/i.test(msg);
+
+  if (!isFetchFail) return msg;
+
+  const name = provider && provider.label ? provider.label : "المزوّد";
+  const proto =
+    typeof location !== "undefined" && location ? location.protocol : "";
+  if (proto === "file:") {
+    return (
+      `تعذّر الوصول إلى ${name}. أنت تفتح الملف مباشرة (file://) وبعض ` +
+      "المتصفحات تمنع الطلبات في هذه الحالة. شغّل الملف عبر سيرفر محلي " +
+      "(python3 -m http.server 8000) ثم افتح http://localhost:8000"
+    );
+  }
+  return (
+    `تعذّر الوصول إلى ${name} — لم يصل الطلب أصلًا. الأسباب المحتملة:\n` +
+    "• لا يوجد إنترنت، أو الشبكة تحجب api.deepseek.com\n" +
+    "• مانع إعلانات أو VPN أو جدار حماية يقطع الطلب\n" +
+    "• إضافة متصفح (AdBlock/Privacy) تمنع الاتصال\n" +
+    "جرّب: أوقف مانع الإعلانات، أو شبكة أخرى، أو افتح الصفحة في نافذة خاصة. " +
+    "وإن استمر، اضغط «اختبار الاتصال» في ⚙ لمعرفة السبب الدقيق."
+  );
 }
 
 function geminiBody(model) {

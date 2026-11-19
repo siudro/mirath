@@ -312,6 +312,24 @@ console.log("\n── ١٢. نداء DeepSeek كامل (شبكة وهمية) ─
     ok(b.ctx.PROVIDERS.deepseek.imageModels.includes("deepseek-flash"), "الموديل معلن كداعم للصور");
   }
 
+  console.log("\n── ١٥. تفسير فشل الشبكة ──");
+  {
+    const b = boot({ saved: {} });
+    const f = b.ctx.explainFetch;
+    ok(typeof f === "function", "explainFetch موجودة");
+
+    const net = f(new TypeError("Failed to fetch"), { label: "DeepSeek" });
+    ok(net.includes("DeepSeek"), "الرسالة تسمّي المزوّد");
+    ok(net.includes("مانع إعلانات"), "تذكر مانع الإعلانات");
+    ok(!net.includes("Failed to fetch"), "لا تُعرض الرسالة الخام للمستخدم");
+
+    const plain = f(new TypeError("Load failed"), { label: "Google Gemini" });
+    ok(plain.includes("Google Gemini"), "تغطي صيغة سفاري Load failed");
+
+    const server = f(new Error("HTTP 402"), { label: "DeepSeek" });
+    eq(server, "HTTP 402", "أخطاء الخادم تمرّ كما هي بلا تمويه");
+  }
+
   console.log(`\n${"═".repeat(52)}`);
   console.log(`  نجح: ${passed}   فشل: ${failed}`);
   if (failed) {
