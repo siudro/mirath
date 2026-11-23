@@ -37,7 +37,7 @@
    ②  قراءة الصورة — النموذج يصف ما يراه فقط
    ③  استرجاع من قاعدة الأدلة (data/knowledge-base.js)
    ④  بحث علمي — Europe PMC (بلا مفتاح إضافي)
-   ⑤  كاتب — luna-gpt6 (رؤية)
+   ⑤  كاتب — gpt-6-luna (رؤية)
    ⑥  مدقّق مستقل — نموذج ثانٍ يبحث عن الخطأ
    ⑦  بوابة قائمة التحقق (config/checklist.js) — ٩ بوابات آليّة
    ⑧  صورة المادة المقترحة — Wikimedia Commons (مع الترخيص)
@@ -105,8 +105,8 @@ npm test          # ٥ مجموعات، كلها بلا شبكة
 1. اربط المستودع في Railway. يكتشف `Dockerfile` تلقائيًا.
 2. في **Variables** اضبط:
    - `OPENAI_API_KEY` — المفتاح
-   - `MIRATH_WRITER_MODEL` = `luna-gpt6`
-   - `MIRATH_VERIFIER_MODEL` = `luna-gpt6`
+   - `MIRATH_WRITER_MODEL` = `gpt-6-luna`
+   - `MIRATH_VERIFIER_MODEL` = `gpt-6-luna`
 3. Railway يضبط `PORT` تلقائيًا. الخادم يقرأه.
 4. الصحة: `/api/health` — دفعة Docker تفحصه كل ٣٠ ثانية.
 
