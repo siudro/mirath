@@ -298,6 +298,92 @@ const HERBS = [
     verdictNote:
       "أدلة حيوانية في الأغلب؛ لا تُعمّم على الإنسان.",
   },
+  {
+    id:
+      "centella",
+    ar:
+      "الزنبق الهندي (سنتيلا آسياتيكا — Gotu Kola)",
+    en:
+      "Centella asiatica",
+    verdict:
+      "unverified",
+    verdictLabel:
+      "⚠️ غير مثبتة للإنسان — تحليل تلوي حيواني",
+    appliesTo: ["abrasion", "laceration", "burn"],
+    evidence:
+      "مراجعة منهجية وتحليل تلوي 2027 مخصص للالتئام (PMID 42772613): ضمّت ١٦ دراسة، منها ١١ قابلة للتحليل الإحصائي، ووجدت تحسنًا معنويًا في مؤشرات الالتئام (المساحة، التركيب النسيجي، الكولاجين). **لكن كل الدراسات preclinical — حيوانية، لا بشرية.**",
+    source:
+      "J Ethnopharmacol 2027 — PMID 42772613 (systematic review + meta-analysis)",
+    link:
+      "https://pubmed.ncbi.nlm.nih.gov/42772613/",
+    notes:
+      "أقوى دليل حيواني في القاعدة، لكنه ليس دليلًا بشريًا. تُستخدم مستحضرات معتمدة (مرهم أو كريم) لا أعشاب منزلية. تحذير: قد يسبب حساسية جلدية، ويُنصح بالحذر مع أمراض الكبد.",
+    imageQuery:
+      "Centella asiatica gotu kola herb",
+    tags: ["herbal", "animal-evidence"],
+    advice:
+      "على جرح سطحي: ضع كريمًا أو مرهمًا معتمدًا يحتوي مستخلص سنتيلا آسياتيكا طبقة رقيقة مرتين يوميًا وفق العبوة، وتوقف عند أي حكة أو احمرار.",
+    verdictNote:
+      "تحليل تلوي قوي لكن على الحيوانات؛ لا تُعمّم على الإنسان.",
+  },
+  {
+    id:
+      "neem",
+    ar:
+      "النيم (أزادراختا إنديكا)",
+    en:
+      "Neem (Azadirachta indica)",
+    verdict:
+      "unverified",
+    verdictLabel:
+      "⚠️ غير مثبتة — أدلة مختبرية وحيوانية",
+    appliesTo: ["abrasion", "laceration"],
+    evidence:
+      "مراجعة 2026 (PMID 43027840) تجمع الأدلة على نشاط مضاد للميكروبات ومحفز للتجديد، ومعظمها مختبري أو حيواني. لا توجد تجارب سريرية بشرية كافية على التئام الجروح.",
+    source:
+      "Int J Mol Sci 2026 — PMID 43027840",
+    link:
+      "https://pubmed.ncbi.nlm.nih.gov/43027840/",
+    notes:
+      "زيت النيم أو مستخلصه غير المعتمد قد يسبب تهيجًا. لا يُوضع على الجرح المفتوح مباشرة. لا يُعطى للأطفال أو الحوامل دون إشراف.",
+    imageQuery:
+      "neem leaves Azadirachta indica",
+    tags: ["herbal", "animal-evidence"],
+    advice:
+      "لا توصية عملية على الجرح المفتوح. لطرد الحشرات حول الجرح: يمكن مسح زيت النيم المخفف على الجلد السليم البعيد عن الجرح.",
+    verdictNote:
+      "أدلة مختبرية في الأغلب — لا توصية على الجروح المفتوحة.",
+  },
+  {
+    id:
+      "manuka",
+    ar:
+      "عسل المانوكا الطبي",
+    en:
+      "Manuka honey (medical grade)",
+    verdict:
+      "unverified",
+    verdictLabel:
+      "⚠️ غير مثبتة — مراجعة سردية",
+    appliesTo: ["burn", "laceration"],
+    evidence:
+      "مراجعة 2026 (PMID 42117760) تجمع الأدلة على المكون الفعّال methylglyoxal في عسل المانوكا: مضاد بكتيري، مضاد للالتهاب، ويحفز التجديد. المراجعة **سردية** لا منهجية، وتشمل جروحًا جراحية ومزمنة.",
+    source:
+      "Int Wound J 2026 — PMID 42117760 (evidence-based narrative review)",
+    link:
+      "https://pubmed.ncbi.nlm.nih.gov/42117760/",
+    notes:
+      "يُستخدم ضماد عسل مانوكا طبي معتمد فقط. لا يُستخدم للأطفال دون سنة. لا يُوضع على جرح نازف نشطًا.",
+    imageQuery:
+      "manuka honey jar medical",
+    tags: ["herbal", "burn-only"],
+    advice:
+      "لحرق جزئي أو جرح سطحي: استخدم ضماد عسل مانوكا طبيًا معتمدًا، وبدّله كل يوم إلى ثلاثة أيام حسب تعليمات العبوة وإشراف الطبيب.",
+    ageLimit:
+      "not-infant",
+    verdictNote:
+      "مراجعة سردية — أقل قوة من مراجعة منهجية.",
+  },
 ];
 
 const EVIDENCE_SOURCES = [

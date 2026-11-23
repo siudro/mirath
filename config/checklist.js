@@ -38,6 +38,9 @@ const ALIASES = {
   propolis: ["العكبر", "البروبوليس", "propolis"],
   "clove-bite": ["القرنفل", "زيت القرنفل", "clove"],
   hypericum: ["العشبة الحمراء", "النسطورية", "Hypericum", "hypericum"],
+  centella: ["الزنبق الهندي", "سنتيلا", "سنتیلا", "آسياتيكا", "Centella", "centella", "Gotu Kola"],
+  neem: ["النيم", "نيم", "أزادراختا", "Neem", "neem"],
+  manuka: ["المانوكا", "مانوكا", "Manuka", "manuka"],
 };
 
 /* بوابات التحقق بترتيبها. لكل بوابة: id، اسم، دالة. */
