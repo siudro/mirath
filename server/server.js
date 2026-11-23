@@ -106,7 +106,7 @@ async function webLookup(query) {
 
 /* ---------------- استدعاء OpenAI ---------------- */
 
-async function callOpenAI({ model, messages, maxTokens = 1200, temperature = 0.2, jsonMode = false, timeoutMs = 60000 }) {
+async function callOpenAI({ model, messages, maxTokens = 1200, temperature = 1, jsonMode = false, timeoutMs = 90000 }) {
   if (!OPENAI_API_KEY) {
     const err = new Error("NO_KEY");
     err.code = "NO_KEY";
@@ -115,8 +115,9 @@ async function callOpenAI({ model, messages, maxTokens = 1200, temperature = 0.2
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const body = { model, messages, temperature };
-    if (maxTokens) body.max_tokens = maxTokens;
+    const body = { model, messages };
+    if (typeof temperature === "number" && temperature !== 1) body.temperature = temperature;
+    if (maxTokens) body.max_completion_tokens = maxTokens;
     if (jsonMode) body.response_format = { type: "json_object" };
     const r = await fetch(`${OPENAI_BASE}/chat/completions`, {
       method: "POST",
@@ -218,7 +219,6 @@ async function pipelineDraft({ messages, danger }) {
     model: MODEL_WRITER,
     messages,
     maxTokens: 900,
-    temperature: 0.15,
   });
 }
 
@@ -250,7 +250,6 @@ async function pipelineVerify({ draft, danger }) {
       { role: "user", content: verifierUser },
     ],
     maxTokens: 500,
-    temperature: 0.1,
     jsonMode: true,
   });
 
@@ -279,7 +278,6 @@ async function pipelineCorrect({ messages, draft, verdict }) {
       { role: "user", content: correctionNote },
     ]),
     maxTokens: 900,
-    temperature: 0.1,
   });
 }
 
