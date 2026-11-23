@@ -34,6 +34,10 @@ const ALIASES = {
   "oak-gall": ["العفص", "عفص"],
   "clean-water": ["الماء النظيف", "تنظيف الماء"],
   "warm-compress": ["الكمادات", "كمادات"],
+  calendula: ["الآذريون", "القطيفة", "القُطيفة", "calendula", "مرهم الآذريون"],
+  propolis: ["العكبر", "البروبوليس", "propolis"],
+  "clove-bite": ["القرنفل", "زيت القرنفل", "clove"],
+  hypericum: ["العشبة الحمراء", "النسطورية", "Hypericum", "hypericum"],
 };
 
 /* بوابات التحقق بترتيبها. لكل بوابة: id، اسم، دالة. */
@@ -194,9 +198,11 @@ const GATES = [
           while (true) {
             const at = text.indexOf(a, from);
             if (at === -1) break;
-            // نافذة بعد الاسم: هل يليه فعل أمر أو «مقداره/طريقته»؟
+            /* الفعل قد يأتي قبل الاسم («ضع مرهم الآذريون») أو بعده
+               («الآذريون — ضعه على الجرح»). نفحص النافذتين. */
+            const before = text.slice(Math.max(0, at - 120), at + a.length);
             const after = text.slice(at, at + 160);
-            if (ACTIONS.some((v) => after.includes(v))) return true;
+            if (ACTIONS.some((v) => before.includes(v) || after.includes(v))) return true;
             from = at + a.length;
           }
         }
