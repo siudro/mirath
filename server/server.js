@@ -137,6 +137,7 @@ async function callOpenAI({ model, messages, maxTokens = 1200, temperature = 1, 
     }
     const choice = j.choices && j.choices[0];
     const content = choice && choice.message && choice.message.content;
+    if (!content) console.error("[debug] empty content; finish_reason=", choice && choice.finish_reason, "usage=", JSON.stringify(j.usage));
     return content || "";
   } finally {
     clearTimeout(t);
@@ -218,7 +219,7 @@ async function pipelineDraft({ messages, danger }) {
   return callOpenAI({
     model: MODEL_WRITER,
     messages,
-    maxTokens: 900,
+    maxTokens: 6000,
   });
 }
 
@@ -249,7 +250,7 @@ async function pipelineVerify({ draft, danger }) {
       { role: "system", content: verifierSystem },
       { role: "user", content: verifierUser },
     ],
-    maxTokens: 500,
+    maxTokens: 3000,
     jsonMode: true,
   });
 
@@ -277,7 +278,7 @@ async function pipelineCorrect({ messages, draft, verdict }) {
       { role: "assistant", content: draft },
       { role: "user", content: correctionNote },
     ]),
-    maxTokens: 900,
+    maxTokens: 6000,
   });
 }
 
