@@ -426,8 +426,9 @@ app.post("/api/chat", async (req, res) => {
 
     /* ٥. مسودة الكاتب */
     toolStart("compose");
+    const currentTurn = { role: "user", text: String(text || "").trim(), image: image && image.base64 ? { base64: image.base64, mime: image.mime } : null };
     const messages = buildMessages({
-      history: checkHistory,
+      history: checkHistory.concat(currentTurn),
       imageBase64: image && image.base64,
       imageMime: image && image.mime,
       danger,
