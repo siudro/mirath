@@ -420,6 +420,55 @@ module.exports = ({ test }) => {
     resetEnv();
   });
 
+  test("★ رسالة المستخدم الحالية تصل إلى النموذج", async () => {
+    withEnv();
+    let seen = null;
+    stubFetch(async (u, opts) => {
+      if (u.includes("europepmc")) return jsonResponse({ resultList: { result: [] } });
+      if (u.includes("commons")) return jsonResponse({ query: { pages: {} } });
+      if (u.includes("/chat/completions")) {
+        const body = JSON.parse(opts.body);
+        const sys = body.messages[0].content;
+        if (sys.includes("وظيفتك: أن تجد الخطأ")) {
+          return jsonResponse({ choices: [{ message: { content: '{"agrees":true,"issues":[]}' } }] });
+        }
+        const users = body.messages.filter((m) => m.role === "user");
+        seen = JSON.stringify(users);
+        return jsonResponse({ choices: [{ message: { content: "اغسل الجرح.\n— هل هو عميق؟" } }] });
+      }
+    });
+    const s = freshServer();
+    await callChat(s, { text: "جرح خاص في كفي الأيمن" });
+    assert.ok(seen, "النموذج لم يُستدع");
+    assert.ok(seen.includes("جرح خاص في كفي الأيمن"), "رسالة المستخدم لم تصل للنموذج!");
+    global.fetch = realFetch;
+    resetEnv();
+  });
+
+  test("★ الطلب يستخدم max_completion_tokens لا max_tokens", async () => {
+    withEnv();
+    let body = null;
+    stubFetch(async (u, opts) => {
+      if (u.includes("europepmc")) return jsonResponse({ resultList: { result: [] } });
+      if (u.includes("commons")) return jsonResponse({ query: { pages: {} } });
+      if (u.includes("/chat/completions")) {
+        body = JSON.parse(opts.body);
+        const sys = body.messages[0].content;
+        if (sys.includes("وظيفتك: أن تجد الخطأ")) {
+          return jsonResponse({ choices: [{ message: { content: '{"agrees":true,"issues":[]}' } }] });
+        }
+        return jsonResponse({ choices: [{ message: { content: "اغسل الجرح.\n— هل هو عميق؟" } }] });
+      }
+    });
+    const s = freshServer();
+    await callChat(s, { text: "جرح" });
+    assert.ok(body, "لا طلب");
+    assert.ok("max_completion_tokens" in body, "يجب استخدام max_completion_tokens (GPT-6)");
+    assert.ok(!("max_tokens" in body), "max_tokens مرفوض من GPT-6");
+    global.fetch = realFetch;
+    resetEnv();
+  });
+
   /* ──── ٩. ★ المنع الصلب: رد طارئ غير آمن لا يُسلَّم ──── */
   test("chat: ★ رد طارئ بلا توجيه طبي يُستبدل بردّ آمن", async () => {
     withEnv();
