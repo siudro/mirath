@@ -301,6 +301,43 @@ module.exports = ({ test }) => {
   });
 
   /* ───── health endpoint معرّف ───── */
+  /* ═══ حماية من نشر نسخة قديمة ═══
+     Railway نشر نسخة ثابتة من ١٩ تشرين الثاني فيها واجهة DeepSeek،
+     بينما المستودع صحيح. هذه الاختبارات تمنع أن يُرفع المستودع نفسه
+     في صورة لا تعمل — الاختبار على الملفات، لا على المنصة. */
+
+  test("★ package.json يشغّل الخادم لا ملفًا ثابتًا", () => {
+    const pkg = JSON.parse(read("package.json"));
+    assert.ok(pkg.scripts && pkg.scripts.start, "لا يوجد start");
+    assert.ok(/server\/server\.js/.test(pkg.scripts.start), "start لا يشغّل الخادم");
+    assert.strictEqual(pkg.main, "server/server.js");
+  });
+
+  test("★ لا توجد واجهة DeepSeek/Gemini القديمة في المستودع", () => {
+    const html = read("public/index.html");
+    assert.ok(!/providerTabs/.test(html), "واجهة اختيار المزوّد القديمة ما زالت موجودة");
+    assert.ok(!/platform\.deepseek\.com/.test(html), "رابط DeepSeek ما زال في الواجهة");
+    assert.ok(html.includes("gpt-6-luna"), "الموديل الصحيح غير معلن في الواجهة");
+  });
+
+  test("★ لا ملف index.html قديم في جذر المستودع", () => {
+    assert.ok(!fs.existsSync(path.join(ROOT, "index.html")),
+      "index.html قديم في الجذر — خادم ثابت سيعرضه بدل التطبيق");
+    assert.ok(!fs.existsSync(path.join(ROOT, "app.js")),
+      "app.js القديم ما زال موجودًا");
+  });
+
+  test("★ Dockerfile لا يفرض PORT (Railway يضبطه)", () => {
+    const df = read("Dockerfile");
+    assert.ok(!/^ENV PORT=/m.test(df), "ENV PORT يعارض قيمة Railway");
+  });
+
+  test("★ الخادم يربط 0.0.0.0 ليصل إليه وكيل المنصة", () => {
+    const srv = read("server/server.js");
+    assert.ok(/app\.listen\(PORT,\s*["']0\.0\.0\.0["']/.test(srv),
+      "الربط غير صريح على 0.0.0.0");
+  });
+
   test("README يشرح التشغيل والنشر", () => {
     const r = read("README.md");
     assert.ok(/npm start|node server\/server\.js/.test(r));
