@@ -154,6 +154,35 @@ const GATES = [
   },
 
   {
+    id: "herbal-substance",
+    label: "طب قديم حقيقي لا ماء فقط",
+    detail: "الرد السليم يجب أن يسمّي مادة أو ممارسة تقليدية فعلية، لا «تنظيف الماء» وحده.",
+    test(ctx) {
+      const text = ctx.text || "";
+      if (!text) return { pass: true };
+      // نفحص فقط الردود التي فيها كتلة طب قديم
+      if (!/الطب القديم|ما يقوله الطب/.test(text)) return { pass: true };
+
+      const kb = (ctx.kb && ctx.kb.herbs) || [];
+      // «تنظيف الماء» إسعاف أولي وليس طبًا تقليديًا لمشروعنا
+      const NOT_HERBAL = new Set(["clean-water"]);
+      const named = kb.filter((h) => {
+        if (NOT_HERBAL.has(h.id)) return false;
+        if (h.verdict === "not-recommended") return false;
+        return text.includes(h.ar) || (ALIASES[h.id] || []).some((a) => text.includes(a));
+      });
+
+      if (!named.length) {
+        return {
+          pass: false,
+          reason: "كتلة الطب القديم تذكر الماء فقط — لا مادة أو ممارسة تقليدية. المشروع يفقد هويته.",
+        };
+      }
+      return { pass: true };
+    },
+  },
+
+  {
     id: "image-caveat",
     label: "الصورة لا تكفي",
     detail: "إن وُجدت صورة، يجب أن يُقال صراحةً إنها لا تكفي لتحديد العمق أو الخطورة.",

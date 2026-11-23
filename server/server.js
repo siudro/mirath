@@ -144,6 +144,21 @@ async function callOpenAI({ model, messages, maxTokens = 1200, temperature = 1, 
   }
 }
 
+/* ---------------- تحديد نوع الإصابة ---------------- */
+function detectInjuryType(text) {
+  const t = String(text || "");
+  const has = (re) => re.test(t);
+
+  if (has(/حروق|حرق|سخن|ساخن|بخار|burn|scald/i)) return "burn";
+  if (has(/د+م+ل|دمامل|خراج|خرّاج|boil|abscess/i)) return "boil";
+  if (has(/شق العجان|عجان|episiotomy/i)) return "episiotomy";
+  if (has(/خلع سن|خلع ضرس|ضرس|سنان|tooth|dental/i)) return "tooth-extraction";
+  if (has(/عضة|عض|لدغة|لدغ|bite|sting/i)) return "bite";
+  if (has(/مسمار|شوكة|إبرة|ابرة|puncture/i)) return "puncture";
+  if (has(/خدش|خدوش|سحج|abrasion|scrape|scratch/i)) return "abrasion";
+  return "laceration";
+}
+
 /* ---------------- بناء رسائل النموذج ---------------- */
 
 function buildMessages({ history, imageBase64, imageMime, danger, kbHerbs, webResults }) {
@@ -409,10 +424,15 @@ app.post("/api/chat", async (req, res) => {
     /* ٣. قاعدة الأدلة */
     toolStart("lookup");
     const lower = String(text || "").toLowerCase();
+    /* ★ اختيار المواد كان معيبًا: كان يأخذ «المذكورة بالاسم» أو الموسومة top،
+       والوسمة top على الماء فقط. فجرح الركبة لا يُعرض للنموذج منه إلا
+       «تنظيف الماء» — فيصير الجواب إسعافًا أوليًا بلا طب قديم. */
+    const injury = detectInjuryType(lower);
     const kbHerbs = HERBS.filter((h) => {
+      if (h.verdict === "not-recommended") return false;
       if (lower.includes(h.ar) || lower.includes(h.en.toLowerCase())) return true;
-      // مواد من الجروح العامة
-      return h.tags && h.tags.includes("top");
+      if (h.appliesTo.includes("any")) return true;
+      return h.appliesTo.includes(injury);
     });
     await new Promise((r) => setTimeout(r, 150));
     toolDone("lookup", `${kbHerbs.length} مادة مرشحة`);
@@ -583,4 +603,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, triage, findHerb, webLookup, pickHerbsForImage, findHerbImage };
+module.exports = { app, triage, findHerb, webLookup, pickHerbsForImage, findHerbImage, detectInjuryType };

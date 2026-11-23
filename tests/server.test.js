@@ -469,6 +469,102 @@ module.exports = ({ test }) => {
     resetEnv();
   });
 
+  /* ──── ★ المواد المنطبقة تصل للنموذج حسب نوع الإصابة ──── */
+
+  test("★ جرح قطع: النموذج يرى الكركم وقشر الرمان لا الماء فقط", async () => {
+    withEnv();
+    let sysSeen = "";
+    stubFetch(async (u, opts) => {
+      if (u.includes("europepmc")) return jsonResponse({ resultList: { result: [] } });
+      if (u.includes("commons")) return jsonResponse({ query: { pages: {} } });
+      if (u.includes("/chat/completions")) {
+        const body = JSON.parse(opts.body);
+        const sys = body.messages[0].content;
+        if (sys.includes("وظيفتك: أن تجد الخطأ")) {
+          return jsonResponse({ choices: [{ message: { content: '{"agrees":true,"issues":[]}' } }] });
+        }
+        sysSeen = body.messages.map((m) => String(m.content)).join("\n");
+        return jsonResponse({ choices: [{ message: { content: "اغسل الجرح.\n— هل ينزف؟" } }] });
+      }
+    });
+    const s = freshServer();
+    await callChat(s, { text: "بنتي انجرحت في ركبتها" });
+    assert.ok(sysSeen.includes("الكركم"), "الكركم لم يصل للنموذج");
+    assert.ok(sysSeen.includes("قشر الرمان"), "قشر الرمان لم يصل للنموذج");
+    global.fetch = realFetch;
+    resetEnv();
+  });
+
+  test("★ حرق: العسل يصل للنموذج", async () => {
+    withEnv();
+    let sysSeen = "";
+    stubFetch(async (u, opts) => {
+      if (u.includes("europepmc")) return jsonResponse({ resultList: { result: [] } });
+      if (u.includes("commons")) return jsonResponse({ query: { pages: {} } });
+      if (u.includes("/chat/completions")) {
+        const body = JSON.parse(opts.body);
+        const sys = body.messages[0].content;
+        if (sys.includes("وظيفتك: أن تجد الخطأ")) {
+          return jsonResponse({ choices: [{ message: { content: '{"agrees":true,"issues":[]}' } }] });
+        }
+        sysSeen = body.messages.map((m) => String(m.content)).join("\n");
+        return jsonResponse({ choices: [{ message: { content: "برّد الحرق بماء جارٍ.\n— هل ظهر تقيؤ؟" } }] });
+      }
+    });
+    const s = freshServer();
+    await callChat(s, { text: "حروق من الماء الساخن على يدي" });
+    assert.ok(sysSeen.includes("العسل"), "العسل لم يصل للنموذج");
+    global.fetch = realFetch;
+    resetEnv();
+  });
+
+  test("★ دمل: الكمادات الدافئة تصل", async () => {
+    withEnv();
+    let sysSeen = "";
+    stubFetch(async (u, opts) => {
+      if (u.includes("europepmc")) return jsonResponse({ resultList: { result: [] } });
+      if (u.includes("commons")) return jsonResponse({ query: { pages: {} } });
+      if (u.includes("/chat/completions")) {
+        const body = JSON.parse(opts.body);
+        const sys = body.messages[0].content;
+        if (sys.includes("وظيفتك: أن تجد الخطأ")) {
+          return jsonResponse({ choices: [{ message: { content: '{"agrees":true,"issues":[]}' } }] });
+        }
+        sysSeen = body.messages.map((m) => String(m.content)).join("\n");
+        return jsonResponse({ choices: [{ message: { content: "ضع كمادة دافئة.\n— هل كبر؟" } }] });
+      }
+    });
+    const s = freshServer();
+    await callChat(s, { text: "دممل صغير مؤلم في ظهري" });
+    assert.ok(sysSeen.includes("الكمادات"), "الكمادات لم تصل للنموذج");
+    global.fetch = realFetch;
+    resetEnv();
+  });
+
+  test("★ المواد الممنوعة لا تُحقن في السياق", async () => {
+    withEnv();
+    let sysSeen = "";
+    stubFetch(async (u, opts) => {
+      if (u.includes("europepmc")) return jsonResponse({ resultList: { result: [] } });
+      if (u.includes("commons")) return jsonResponse({ query: { pages: {} } });
+      if (u.includes("/chat/completions")) {
+        const body = JSON.parse(opts.body);
+        const sys = body.messages[0].content;
+        if (sys.includes("وظيفتك: أن تجد الخطأ")) {
+          return jsonResponse({ choices: [{ message: { content: '{"agrees":true,"issues":[]}' } }] });
+        }
+        const cand = body.messages.filter((m) => String(m.content).includes("المواد المنطبقة"));
+        sysSeen = cand.map((m) => String(m.content)).join("\n");
+        return jsonResponse({ choices: [{ message: { content: "اغسل الجرح.\n— هل ينزف؟" } }] });
+      }
+    });
+    const s = freshServer();
+    await callChat(s, { text: "جرح في يدي" });
+    assert.ok(!/زيت الكافور/.test(sysSeen), "مادة ممنوعة حُقنت كمرشح");
+    global.fetch = realFetch;
+    resetEnv();
+  });
+
   /* ──── ٩. ★ المنع الصلب: رد طارئ غير آمن لا يُسلَّم ──── */
   test("chat: ★ رد طارئ بلا توجيه طبي يُستبدل بردّ آمن", async () => {
     withEnv();
