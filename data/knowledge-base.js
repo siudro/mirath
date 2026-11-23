@@ -24,6 +24,8 @@ const HERBS = [
     notes: "بعد توقف النزيف فقط. لا تُستخدم مياه ملوثة. لا صابون داخل الجرح العميق.",
     imageQuery: "clean water wound irrigation first aid",
     tags: ["first-aid", "top"],
+    advice:
+      "اشطف الجرح بماء نظيف جارٍ بلطف، وأزل ما حوله دون فرك داخل الجرح.",
   },
   {
     id: "honey",
@@ -41,6 +43,8 @@ const HERBS = [
     imageQuery: "medical grade honey wound dressing",
     tags: ["herbal", "burn-only"],
     ageLimit: "not-infant",
+    advice:
+      "لحرق جزئي السُمك: ضع طبقة رقيقة من العسل الطبي المعتمد على شاش غير لاصق، وبدّله حسب تعليمات العبوة. لا تضع عسل المطبخ.",
   },
   {
     id: "turmeric",
@@ -56,6 +60,8 @@ const HERBS = [
     notes: "لا يُنصح بوضع مسحوق الكركم المنزلي على الجروح المفتوحة.",
     imageQuery: "turmeric root powder",
     tags: ["herbal"],
+    advice:
+      "للتئام الجروح السطحية: يُستخدم الكركم في مستحضر جرح معتمد (كريم أو مرهم)، لا مسحوق المطبخ. إن لم يتوفر مستحضر، أعطه فمويًا في الطعام فهو طريقة آمنة.",
   },
   {
     id: "aloe",
@@ -71,6 +77,8 @@ const HERBS = [
     notes: "لا يُعدّ علاجًا مثبتًا ولا بديلًا عن العناية الطبية.",
     imageQuery: "aloe vera leaf",
     tags: ["herbal", "burn-only"],
+    advice:
+      "للحرق الخفيف بعد التبريد: ضع جل الصبر النقي على الجلد السليم حول الحرق وعلى الحرق الخفيف غير المفتوح.",
   },
   {
     id: "warm-compress",
@@ -87,6 +95,8 @@ const HERBS = [
       "ليست علاجًا عامًا للجروح أو النزيف. لا تُستخدم الحرارة على الجروح المفتوحة دون توجيه طبي.",
     imageQuery: "warm compress wet cloth",
     tags: ["herbal", "boil-only"],
+    advice:
+      "لدمل صغير: ضع كمادة نظيفة دافئة (لا حارة) ١٠ إلى ١٥ دقيقة، ٣ إلى ٤ مرات يوميًا، ثم جفّف بلطف ولا تعصر الدمل.",
   },
   {
     id: "pomegranate-peel",
@@ -103,6 +113,8 @@ const HERBS = [
       "قشر الرمان مادة مختلفة تمامًا عن العفص — لا تُدمجا ولا تُنقل حكم من إحداهما للأخرى.",
     imageQuery: "pomegranate peel",
     tags: ["herbal", "historical"],
+    advice:
+      "للتئام السطحي: يُستخدم مستخلص قشر الرمان الموثّق في دراسات — لا تُوضع القشور المنزلية على الجرح المفتوح.",
   },
   {
     id: "oak-gall",
@@ -117,6 +129,8 @@ const HERBS = [
     notes: "لا دليل كافٍ. لا يُوصى به عمليًا.",
     imageQuery: "oak gall",
     tags: ["herbal", "historical"],
+    advice:
+      "لا توجد صيغة موصى بها للاستخدام على الجرح — الأدلة غير كافية.",
   },
   {
     id: "myrrh",
@@ -134,6 +148,8 @@ const HERBS = [
     imageQuery: "myrrh resin commiphora",
     tags: ["herbal", "historical", "narrow-indication"],
     ageLimit: "adults-only",
+    advice:
+      "لجرح صغير محدد (مثل شق العجان بإشراف طبي): تُستخدم مستحضرات المرّة المعتمدة فقط. لا تضع الراتنج على جرح مفتوح.",
   },
   {
     id: "eucalyptus-oil",
@@ -149,6 +165,8 @@ const HERBS = [
     notes: "ممنوع على الجروح والجلد المتضرر. الأولوية للضغط المباشر في النزيف.",
     imageQuery: "eucalyptus leaves",
     tags: ["herbal", "danger"],
+    advice:
+      "لا يُوضع على الجرح أو الجلد المتضرر إطلاقًا.",
   },
   {
     id: "olive-wax",
@@ -163,6 +181,8 @@ const HERBS = [
     notes: "قد يُغلق الجرح ظاهريًا ويمنع خروج الإفرازات ويحبس البكتيريا.",
     imageQuery: "olive oil wax",
     tags: ["herbal", "danger"],
+    advice:
+      "لا يُوضع على الجرح — قد يحبس البكتيريا ويمنع التصريف.",
   },
 ];
 

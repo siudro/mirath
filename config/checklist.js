@@ -178,6 +178,38 @@ const GATES = [
           reason: "كتلة الطب القديم تذكر الماء فقط — لا مادة أو ممارسة تقليدية. المشروع يفقد هويته.",
         };
       }
+
+      /* ★ التوصية يجب أن تكون فعلًا، لا تصنيفًا.
+         المستخدم قال صراحةً إنه لا يريد «مثبتة / غير مثبتة» وحده — يريد
+         «ضع العسل على هذا الجرح». نتحقق من وجود فعل أمر قريب من اسم المادة. */
+      const ACTIONS = [
+        "ضع", "ضعي", "ضعوا", "اشطف", "اشطفي", "اغسل", "اغسلي", "غطِّ", "غطي",
+        "كرر", "كرري", "استخدم", "استخدمي", "دلّك", "دلكي", "بدّل", "بدلي",
+        "apply", "wash", "rinse", "cover", "use", "repeat", "change",
+      ];
+      const hasAction = named.some((h) => {
+        const aliases = [h.ar].concat(ALIASES[h.id] || []);
+        for (const a of aliases) {
+          let from = 0;
+          while (true) {
+            const at = text.indexOf(a, from);
+            if (at === -1) break;
+            // نافذة بعد الاسم: هل يليه فعل أمر أو «مقداره/طريقته»؟
+            const after = text.slice(at, at + 160);
+            if (ACTIONS.some((v) => after.includes(v))) return true;
+            from = at + a.length;
+          }
+        }
+        return false;
+      });
+
+      if (!hasAction) {
+        return {
+          pass: false,
+          reason:
+            "الرد يذكر مواد بلا توصية تنفيذية — يجب أن يقول ماذا يفعل بها (ضع/اشطف/غطِّ + المدة).",
+        };
+      }
       return { pass: true };
     },
   },

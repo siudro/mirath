@@ -183,13 +183,14 @@ function buildMessages({ history, imageBase64, imageMime, danger, kbHerbs, webRe
     messages.push({
       role: "system",
       content:
-        "المواد المنطبقة على هذا الحالة من القاعدة:\n" +
+        "المواد التي أوصي بها لهذه الحالة (اختر منها وانصح بها صراحةً):\n" +
         kbHerbs
           .map(
             (h) =>
-              `- ${h.ar} (${h.en}) — ${h.verdictLabel} — تطبق على: ${h.appliesTo.join("، ") || "لا شيء"} — ${h.evidence}`
+              `- ${h.ar}: ${h.advice}\n  قوة الدليل: ${h.verdictLabel} — ${h.evidence}`
           )
-          .join("\n"),
+          .join("\n") +
+        "\n\nاكتب توصيتك على شكل وصفة: الفعل، المدة، والدليل بين قوسين. لا تسرد تصنيفات فقط.",
     });
   }
 
