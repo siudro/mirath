@@ -1,0 +1,22 @@
+{
+  "name": "mirath",
+  "version": "2.0.0",
+  "description": "مِيراث — مساعد العناية الآمنة بالجروح. WAICY 2026 · LLM & AI Agent track.",
+  "private": true,
+  "main": "server/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "test": "node tests/run.js",
+    "test:unit": "node tests/run.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "keywords": ["waicy", "wound-care", "first-aid", "llm", "vision"],
+  "license": "MIT"
+}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>مِيراث — مساعد العناية الآمنة بالجروح</title>
+<meta name="description" content="مساعد ذكي للإسعاف الأولي للجروح، للناس الذين لا يصلون بسرعة إلى رعاية صحية. يفرز بين الممارسة المثبتة وغير المثبتة، ويلجأ للطب القديم كسياق لا كقرار." />
+<meta name="theme-color" content="#0e1f16" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<!-- ═══════════ خلفية نباتية متحركة ═══════════ -->
+<div class="forest-bg" aria-hidden="true">
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+  <svg class="vine vine-a" viewBox="0 0 200 600" preserveAspectRatio="none">
+    <path d="M100,0 C140,120 60,220 100,320 C140,420 60,520 100,600"
+          fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <svg class="vine vine-b" viewBox="0 0 200 600" preserveAspectRatio="none">
+    <path d="M100,0 C60,120 140,220 100,320 C60,420 140,520 100,600"
+          fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+</div>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 28V14"/>
+        <path d="M16 18c0-5 4-9 9-9 0 5-4 9-9 9z"/>
+        <path d="M16 22c0-5-4-9-9-9 0 5 4 9 9 9z"/>
+      </svg>
+    </span>
+    <div class="brand-text">
+      <h1>مِيراث</h1>
+      <p class="tagline">مساعد العناية الآمنة بالجروح</p>
+    </div>
+  </div>
+  <nav class="header-actions" aria-label="أدوات التطبيق">
+    <button id="historyBtn" class="icon-btn" title="سجل المحادثات" aria-label="سجل المحادثات">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/>
+      </svg>
+    </button>
+    <button id="workflowBtn" class="icon-btn" title="كيف يعمل ميراث" aria-label="كيف يعمل ميراث">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/>
+        <circle cx="12" cy="18" r="2.2"/>
+        <path d="M8.2 6h7.6M7 8.1l4 7.7M17 8.1l-4 7.7"/>
+      </svg>
+    </button>
+    <button id="checklistBtn" class="icon-btn" title="قائمة التحقق" aria-label="قائمة التحقق">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 5h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7"/><path d="m3 12 2.5 2.5L10 10"/>
+      </svg>
+    </button>
+    <button id="saveChatBtn" class="icon-btn" title="حفظ المحادثة في السجل" aria-label="حفظ المحادثة">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <path d="M17 21v-8H7v8M7 3v5h8"/>
+      </svg>
+    </button>
+    <button id="settingsBtn" class="icon-btn" title="الإعدادات" aria-label="الإعدادات">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </nav>
+</header>
+
+<div id="notice" class="notice" role="status" hidden></div>
+
+<!-- ═══════════ ساحة المحادثة ═══════════ -->
+<main class="stage">
+  <section id="chat" class="chat" aria-live="polite" aria-label="ساحة المحادثة">
+    <div class="msg bot">
+      <div class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20V10"/><path d="M12 13c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 16c0-4-3-7-7-7 0 4 3 7 7 7z"/>
+        </svg>
+      </div>
+      <div class="bubble">
+        <p>سلامتك. أنا مِيراث — أساعدك في العناية بالجرح خطوة بخطوة.</p>
+        <p class="muted">اكتب لي ما حدث، أو ارفع صورة للجرح.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- سجل ما يفعله الوكيل — يظهر على اليمين (RTL: يسار) -->
+  <aside id="trace" class="trace" aria-label="ما يفعله مِيراث الآن" hidden>
+    <div class="trace-head">
+      <span class="trace-title">مِيراث يعمل الآن</span>
+      <span class="trace-pulse" aria-hidden="true"></span>
+    </div>
+    <ul id="traceList" class="trace-list"></ul>
+    <p class="trace-foot">كل خطوة مفحوصة قبل أن تصل إليك.</p>
+  </aside>
+</main>
+
+<!-- ═══════════ الشريط السفلي ═══════════ -->
+<footer class="composer">
+  <div id="preview" class="preview" hidden>
+    <img id="previewImg" alt="معاينة الصورة" />
+    <button id="removeImg" class="remove-img" aria-label="إزالة الصورة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <form id="form" class="input-row">
+    <label class="file-btn" title="إرفاق صورة">
+      <input type="file" id="fileInput" accept="image/*" hidden />
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.5 6.5 8 13a4 4 0 0 0 5.7 5.6l7-7a6 6 0 0 0-8.5-8.5l-7 7a8 8 0 0 0 11.3 11.3l2.2-2.2"/>
+      </svg>
+    </label>
+    <label class="file-btn" title="التقاط صورة بالكاميرا">
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+    </label>
+
+    <textarea id="input" rows="1" placeholder="اكتب ما حدث…" autocomplete="off"></textarea>
+    <button type="submit" id="sendBtn" class="send-btn" aria-label="إرسال">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+      </svg>
+    </button>
+  </form>
+  <p class="footnote">
+    مِيراث مساعد أولي، وليس طبيبًا. لا يشخّص ولا يصف دواءً.
+  </p>
+</footer>
+
+<!-- ═══════════ نافذة سجل المحادثات ═══════════ -->
+<div id="historyModal" class="modal" hidden>
+  <div class="modal-card wide">
+    <div class="modal-head">
+      <h2>سجل المحادثات</h2>
+      <button class="modal-close" data-close="historyModal" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="historyEmpty" class="empty-state" hidden>لا محادثات محفوظة بعد. ابدأ محادثة، ثم اضغط زر الحفظ.</div>
+    <ul id="historyList" class="history-list"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ نافذة العرض التوضيحي للعمل ═══════════ -->
+<div id="workflowModal" class="modal" hidden>
+  <div class="modal-card wide">
+    <div class="modal-head">
+      <h2>كيف يعمل مِيراث</h2>
+      <button class="modal-close" data-close="workflowModal" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="workflowCanvas" class="workflow-canvas"></div>
+  </div>
+</div>
+
+<!-- ═══════════ نافذة قائمة التحقق ═══════════ -->
+<div id="checklistModal" class="modal" hidden>
+  <div class="modal-card wide">
+    <div class="modal-head">
+      <h2>قائمة التحقق في مِيراث</h2>
+      <button class="modal-close" data-close="checklistModal" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p class="muted">هذه ليست قواعد نصائح بل حاجز آلي. كل رد يمرّ من هنا قبل وصوله إليك.</p>
+    <ol id="checklistList" class="checklist-list"></ol>
+  </div>
+</div>
+
+<!-- ═══════════ نافذة الإعدادات ═══════════ -->
+<div id="settings" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>الإعدادات</h2>
+      <button class="modal-close" data-close="settings" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <p class="step-label">١ — موديل الوكيل</p>
+    <select id="modelSel">
+      <option value="luna-gpt6">luna-gpt6 (OpenAI · يدعم الصور)</option>
+    </select>
+    <p class="hint">المفتاح يُضبط على الخادم عبر متغير البيئة <code>OPENAI_API_KEY</code>. لا يُخزَّن في المتصفح ولا في الكود.</p>
+
+    <p class="step-label">٢ — حالة الاتصال</p>
+    <p id="keyStatus" class="key-status" hidden></p>
+    <div class="diag-row">
+      <button id="diagBtn" class="diag-btn" type="button">اختبار الاتصال</button>
+      <pre id="diagOut" class="diag-out" hidden></pre>
+    </div>
+  </div>
+</div>
+
+<script src="/data/knowledge-base.js"></script>
+<script src="/config/checklist.js"></script>
+<script src="/ui.js"></script>
+</body>
+</html>

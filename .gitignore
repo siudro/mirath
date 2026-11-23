@@ -1,5 +1,19 @@
 .env
 .env.local
+.env.*.local
 *.log
 .DS_Store
 node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# لا مفتاح ولا سر يُرفع
+*.pem
+*.key
+secrets/
+
+# مخرجات الاختبار والمتصفح
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
