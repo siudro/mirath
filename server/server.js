@@ -576,7 +576,8 @@ app.get("*", (req, res, next) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  /* Containers route traffic to $PORT; binding 0.0.0.0 makes it reachable. */
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`[mirath] listening on :${PORT}`);
     console.log(`[mirath] writer=${MODEL_WRITER} verifier=${MODEL_VERIFIER} key=${OPENAI_API_KEY ? "set" : "MISSING"}`);
   });
