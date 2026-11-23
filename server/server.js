@@ -30,7 +30,7 @@ app.use(express.json({ limit: "12mb" }));
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_BASE = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-const MODEL_WRITER = process.env.MIRATH_WRITER_MODEL || "luna-gpt6";
+const MODEL_WRITER = process.env.MIRATH_WRITER_MODEL || "gpt-6-luna";
 const MODEL_VERIFIER = process.env.MIRATH_VERIFIER_MODEL || MODEL_WRITER;
 const PORT = Number(process.env.PORT || 8080);
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
