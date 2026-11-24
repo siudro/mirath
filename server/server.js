@@ -187,7 +187,7 @@ function buildMessages({ history, imageBase64, imageMime, danger, kbHerbs, webRe
         kbHerbs
           .map(
             (h) =>
-              `- ${h.ar}: ${h.advice}\n  قوة الدليل: ${h.verdictLabel} — ${h.evidence}`
+              `- ${h.ar}\n  الفائدة: ${h.benefit || h.verdictNote || ""}\n  الاستخدام: ${h.advice}\n  الدليل: ${h.source}\n  التفصيل: ${h.evidence}\n  درجة الدليل: ${h.verdictLabel}`
           )
           .join("\n") +
         "\n\nاكتب توصيتك على شكل وصفة: الفعل، المدة، والدليل بين قوسين. لا تسرد تصنيفات فقط.",

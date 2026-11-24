@@ -26,6 +26,7 @@ const HERB_VERDICT_MARKERS = ["مثبتة", "غير مثبتة", "غير موص�
    الصيغة المختصرة من البوابة. العسل مضبوط أولًا ليتحقق من اللاحقة أولًا. */
 const ALIASES = {
   honey: ["العسل الطبي", "العسل"],
+  turmeric: ["الكركم", "كركم", "الكركمين", "turmeric", "curcumin"],
   aloe: ["الصبر", "الألوة", "ألوة فيرا"],
   "pomegranate-peel": ["قشر الرمان", "الرمان"],
   "eucalyptus-oil": ["الكافور", "كافور"],
@@ -191,7 +192,7 @@ const GATES = [
          «ضع العسل على هذا الجرح». نتحقق من وجود فعل أمر قريب من اسم المادة. */
       const ACTIONS = [
         "ضع", "ضعي", "ضعوا", "اشطف", "اشطفي", "اغسل", "اغسلي", "غطِّ", "غطي",
-        "كرر", "كرري", "استخدم", "استخدمي", "دلّك", "دلكي", "بدّل", "بدلي",
+        "كرر", "كرري", "استخدم", "استخدمي", "باستخدام", "دلّك", "دلكي", "بدّل", "بدلي",
         "apply", "wash", "rinse", "cover", "use", "repeat", "change",
       ];
       const hasAction = named.some((h) => {
@@ -218,6 +219,35 @@ const GATES = [
           reason:
             "الرد يذكر مواد بلا توصية تنفيذية — يجب أن يقول ماذا يفعل بها (ضع/اشطف/غطِّ + المدة).",
         };
+      }
+      return { pass: true };
+    },
+  },
+
+  {
+    id: "recommendation-voice",
+    label: "نصح صريح لا شرط",
+    detail: "كتلة الطب القديم يجب أن تصرّح بـ«أنصحك» وأن تستشهد بدليلها.",
+    test(ctx) {
+      const text = ctx.text || "";
+      if (!/الطب القديم|أنصحك|ما توصي به|توصي به/.test(text)) return { pass: true };
+
+      const lower = text;
+      // صيغة الشرط تُضعف التوصية إلى حد إلغائها
+      const hedging = /إذا توفر|إن توفر|إن كان متوفر/.test(lower);
+      const recommends = /أنصحك|أوصي|أنصح/.test(lower);
+      const cites = /PMID\s?\d{6,}|Cochrane|WHO|منظمة الصحة|EMA|DailyMed|مراجعة|تحليل تلوي/.test(lower);
+
+      /* الشرط يُضعف التوصية حتى لو وُجدت «أنصحك» في مكان آخر.
+         المستخدم طلب وصفة، لا خيارًا مشروطًا. */
+      if (hedging) {
+        return { pass: false, reason: "التوصية بصيغة الشرط («إذا توفر…») — يجب أن تكون نصحًا مباشرًا." };
+      }
+      if (!recommends) {
+        return { pass: false, reason: "لا توجد صيغة نصح صريحة («أنصحك بـ…») في كتلة التوصية." };
+      }
+      if (!cites) {
+        return { pass: false, reason: "التوصية بلا استشهاد بدليل (PMID أو مراجعة)." };
       }
       return { pass: true };
     },
@@ -283,15 +313,25 @@ const GATES = [
     test(ctx) {
       const t = ctx.text || "";
       const sources = (ctx.kb && ctx.kb.sources) || [];
-      // ابحث عن PMID
+      const herbs = (ctx.kb && ctx.kb.herbs) || [];
       const pmids = t.match(/PMID\s*(\d{6,})/gi) || [];
       const allowed = new Set();
-      for (const s of sources) {
-        const m = (s.en + " " + s.ar).match(/PMID\s*(\d{6,})/gi) || [];
-        m.forEach((x) => allowed.add(x.replace(/\s+/g, " ").toLowerCase()));
-      }
+      /* ★ المراجع قد تكون في قائمة الأدلة العامة أو في حقل source/evidence
+         لكل مادة. كان الفحص يقرأ الأولى فقط، فكان يرفض استشهادًا صحيحًا
+         بمادة في القاعدة. */
+      /* بعض المصادر تكتب «PubMed 41388841» بدل «PMID 41388841».
+         نقبل الصيغتين ونوحّدها إلى رقم مجرد. */
+      const harvest = (str) => {
+        const text2 = String(str || "");
+        const m1 = text2.match(/PMID\s*(\d{6,})/gi) || [];
+        m1.forEach((x) => allowed.add(x.replace(/^(PMID|PubMed)\s*/i, "").trim()));
+        const m2 = text2.match(/PubMed\s*(\d{6,})/gi) || [];
+        m2.forEach((x) => allowed.add(x.replace(/^(PMID|PubMed)\s*/i, "").trim()));
+      };
+      for (const s of sources) { harvest(s.en); harvest(s.ar); }
+      for (const h of herbs) { harvest(h.source); harvest(h.evidence); }
       for (const p of pmids) {
-        const normalized = p.replace(/\s+/g, " ").toLowerCase();
+        const normalized = p.replace(/^(PMID|PubMed)\s*/i, "").trim();
         if (!allowed.has(normalized)) {
           return { pass: false, reason: `PMID غير معروف في القاعدة: ${p}.` };
         }
