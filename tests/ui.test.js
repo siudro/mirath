@@ -338,6 +338,24 @@ module.exports = ({ test }) => {
       "الربط غير صريح على 0.0.0.0");
   });
 
+  /* ═══ ملف الأدلة PDF ═══ */
+
+  test("★ سجل الأدلة PDF موجود وغير فارغ", () => {
+    const pdf = path.join(ROOT, "docs", "Mirath-Evidence-Audit.pdf");
+    assert.ok(fs.existsSync(pdf), "PDF مفقود");
+    const buf = fs.readFileSync(pdf);
+    assert.ok(buf.length > 10000, `PDF صغير جدًا: ${buf.length}`);
+    assert.strictEqual(buf.subarray(0, 4).toString(), "%PDF", "ليس ملف PDF صالحًا");
+  });
+
+  test("★ مولّد الـ PDF موجود ويمكن إعادة البناء", () => {
+    const gen = path.join(ROOT, "tools", "build_pdf.py");
+    assert.ok(fs.existsSync(gen), "مولّد PDF مفقود");
+    const src = fs.readFileSync(gen, "utf8");
+    assert.ok(src.includes("arabic_reshaper"), "لا يعالج تشكيل العربية");
+    assert.ok(src.includes("get_display"), "لا يعالج اتجاه RTL");
+  });
+
   test("README يشرح التشغيل والنشر", () => {
     const r = read("README.md");
     assert.ok(/npm start|node server\/server\.js/.test(r));
