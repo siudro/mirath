@@ -183,14 +183,19 @@ function buildMessages({ history, imageBase64, imageMime, danger, kbHerbs, webRe
     messages.push({
       role: "system",
       content:
-        "المواد التي أوصي بها لهذه الحالة (اختر منها وانصح بها صراحةً):\n" +
+        "المواد المتاحة لهذه الحالة — رتّبها حسب طبقتها:\n" +
         kbHerbs
-          .map(
-            (h) =>
-              `- ${h.ar}\n  الفائدة: ${h.benefit || h.verdictNote || ""}\n  الاستخدام: ${h.advice}\n  الدليل: ${h.source}\n  التفصيل: ${h.evidence}\n  درجة الدليل: ${h.verdictLabel}`
-          )
+          .map((h) => {
+            /* نحدد الطبقة صريحة كي لا يخلط النموذج بين «واعد» و«غير مثبت». */
+            let tier;
+            if (h.verdict === "verified") tier = "مثبتة — أوصِ بها صراحةً";
+            else if (/واعدة/.test(h.verdictLabel)) tier = "واعد — أوصِ بها مع بيان أن الدليل لم يكتمل";
+            else if (/حيوان|محدودة/.test(h.verdictLabel)) tier = "أدلة حيوانية محدودة — اذكرها بحذر";
+            else tier = "غير مثبتة — تحذير فقط";
+            return `- ${h.ar}\n  الطبقة: ${tier}\n  الفائدة: ${h.benefit || h.verdictNote || ""}\n  الاستخدام: ${h.advice}\n  الدليل: ${h.source}\n  التفصيل: ${h.evidence}\n  اللصيقة: ${h.verdictLabel}`;
+          })
           .join("\n") +
-        "\n\nاكتب توصيتك على شكل وصفة: الفعل، المدة، والدليل بين قوسين. لا تسرد تصنيفات فقط.",
+        "\n\nاكتب التوصية كوصفة: فعل، مدة، دليل. والمواد غير المثبتة اذكرها للتحذير لا للتوصية.",
     });
   }
 
@@ -286,7 +291,9 @@ async function pipelineCorrect({ messages, draft, verdict }) {
     "مدقّق مستقل قرأ مسودتك واعترض:\n" +
     (verdict.issues || []).map((x) => "- " + x).join("\n") +
     (verdict.corrections ? `\nتصحيح مقترح: ${verdict.corrections}` : "") +
-    "\n\nأعد كتابة الرد كاملًا، مع تصحيح هذه النقاط، وبلا ذكر لعملية التدقيق نفسها.";
+    "\n\nأعد كتابة الرد كاملًا، مع تصحيح هذه النقاط، وبلا ذكر لعملية التدقيق نفسها." +
+    "\n\n★ بنية إلزامية: (١) إسعاف أولي ٢-٤ خطوات. (٢) «أنصحك بـ [مادة] — [فعل] [مدة]. الفائدة: … الدليل: PMID …». (٣) «وتجنّب …» للمواد غير المثبتة." +
+    "\n★ ممنوع: «لا أستطيع التوصية»، أو ذكر مادة واعدة بلا صيغة «أنصحك». المواد الموسومة «واعدة» تُنصح بها.";
 
   return callOpenAI({
     model: MODEL_WRITER,
@@ -514,7 +521,12 @@ app.post("/api/chat", async (req, res) => {
 
         /* ★ لا نقبل تصحيحًا إن كان غير آمن، حتى لو نجح في بوابات أكثر.
            الأمان أولًا، ثم عدد البوابات. */
-        if (rec.safeToDeliver && (rec.passed > check.passed || !draftWasSafe)) {
+        /* ★ نقبل التصحيح إذا حسّن النتيجة أو أصلح بوابة كانت راسبة.
+           قبلًا كان يشترط «بوابات أكثر»، فكان تصحيح يصلح بوابة ويتعادل
+           في العدد يُرفض، ويعود الرد الأصلي السيئ. */
+        const fixedA = !rec.results.find((r) => r.id === "recommendation-voice" && !r.pass) &&
+                       check.results.find((r) => r.id === "recommendation-voice" && !r.pass);
+        if (rec.safeToDeliver && (rec.passed > check.passed || !draftWasSafe || fixedA)) {
           finalText = fixed;
           check = rec;
           corrected = true;

@@ -147,7 +147,13 @@ const GATES = [
           .filter((i) => i !== -1);
         for (const i of matches) {
           const slice = lines.slice(Math.max(0, i - 1), i + 2).join(" ");
-          const has = HERB_VERDICT_MARKERS.some((m) => slice.includes(m));
+          let has = HERB_VERDICT_MARKERS.some((m) => slice.includes(m));
+          /* ★ التحذير الصريح («تجنّب…» / «لا أنصح…») هو نفسه حكم بالرفض.
+             لا نطالب بلصيقة ⚠️ فوقه، فالسطر التحذيري أوضح من اللصيقة. */
+          if (!has && /تجنّب|لا أنصح|لا تضع|لا تستخدم|ابتعد|ابعد/.test(slice)) has = true;
+          /* ★ صيغة النصح الصريح («أنصحك بـ…») تحمل حكمها في بنيتها: توصية.
+             البوابة «recommendation-voice» تتحقق من الدليل. لا نطالب بلصيقة إضافية. */
+          if (!has && /أنصحك|أوصي/.test(slice)) has = true;
           if (!has) { offenders.push(h.ar); break; }
         }
       }
@@ -230,12 +236,25 @@ const GATES = [
     detail: "كتلة الطب القديم يجب أن تصرّح بـ«أنصحك» وأن تستشهد بدليلها.",
     test(ctx) {
       const text = ctx.text || "";
-      if (!/الطب القديم|أنصحك|ما توصي به|توصي به/.test(text)) return { pass: true };
+      /* ★ البوابة تُطبَّق كلما ذُكرت مادة تقليدية — لا على وجود عنوان فقط.
+         النموذج قد يذكر «الآذريون» بلا عنوان «ما يقوله الطب القديم»،
+         فيفلت من الفحص وهذا ما جعل الردود الباردة تمرّ. */
+      const kbList = (ctx.kb && ctx.kb.herbs) || [];
+      const NOT_HERBAL = new Set(["clean-water"]);
+      const mentionsTrad = kbList.some((h) => {
+        if (NOT_HERBAL.has(h.id)) return false;
+        if (h.verdict === "not-recommended") return false;
+        const al = [h.ar].concat(ALIASES[h.id] || []);
+        return al.some((a) => text.includes(a));
+      });
+      if (!mentionsTrad && !/الطب القديم|الممارسات التراثية/.test(text)) return { pass: true };
 
       const lower = text;
       // صيغة الشرط تُضعف التوصية إلى حد إلغائها
       const hedging = /إذا توفر|إن توفر|إن كان متوفر/.test(lower);
-      const recommends = /أنصحك|أوصي|أنصح/.test(lower);
+      /* «لا أستطيع التوصية» ليست نصحًا — نستبعد النفي. */
+      const refuses = /لا أستطيع التوصية|لا يمكنني التوصية|لا أوصي|لا أنصح/.test(lower);
+      const recommends = !refuses && /أنصحك|أوصي|أنصح/.test(lower);
       const cites = /PMID\s?\d{6,}|Cochrane|WHO|منظمة الصحة|EMA|DailyMed|مراجعة|تحليل تلوي/.test(lower);
 
       /* الشرط يُضعف التوصية حتى لو وُجدت «أنصحك» في مكان آخر.
@@ -248,6 +267,104 @@ const GATES = [
       }
       if (!cites) {
         return { pass: false, reason: "التوصية بلا استشهاد بدليل (PMID أو مراجعة)." };
+      }
+      return { pass: true };
+    },
+  },
+
+  {
+    id: "avoid-unproven",
+    label: "التحذير من غير المثبت",
+    detail: "أي مادة غير مثبتة تُذكر يجب أن يُصحبها نهي عن استخدامها.",
+    test(ctx) {
+      const text = ctx.text || "";
+      if (!text) return { pass: true };
+
+      const kb = (ctx.kb && ctx.kb.herbs) || [];
+      /* ★ المستخدمة طلبت: اذكر غير المثبت وحذّر منه. الذكر بلا تحذير
+         يقرأه المصاب كتوصية — وهذا خطر. */
+      const warned = /لا أنصح|لا تستخدم|تجنّب|ابعد|ابتعد|غير موصى|لا تضع|لا يُستخدم|ممنوع|احذر/i;
+
+      for (const h of kb) {
+        if (h.verdict === "verified") continue;
+        if (h.verdict === "not-recommended") continue; // مغطاة ببوابة الخطورة
+        /* ★ المواد «الواعدة» تُنصح، لا تُحذَّر. الخلط بينها وبين غير المثبت
+           كان يدفع النموذج لقول «لا حاجة لها» عن مواد جيدة. */
+        if (/واعدة/.test(h.verdictLabel || "")) continue;
+        const aliases = [h.ar].concat(ALIASES[h.id] || []);
+        let mentioned = false;
+        for (const a of aliases) {
+          if (text.includes(a)) { mentioned = true; break; }
+        }
+        if (!mentioned) continue;
+
+        // نافذة حول ذكر المادة: هل يوجد تحذير قريب؟
+        let guarded = false;
+        for (const a of aliases) {
+          let from = 0;
+          while (true) {
+            const at = text.indexOf(a, from);
+            if (at === -1) break;
+            const window = text.slice(Math.max(0, at - 120), at + 300);
+            if (warned.test(window)) { guarded = true; break; }
+            from = at + a.length;
+          }
+          if (guarded) break;
+        }
+        if (!guarded) {
+          return {
+            pass: false,
+            reason: `المادة «${h.ar}» غير مثبتة وذُكرت بلا تحذير — يجب النهي عن استخدامها صراحةً.`,
+          };
+        }
+      }
+      return { pass: true };
+    },
+  },
+
+  {
+    id: "promising-not-avoided",
+    label: "الواعد لا يُنبَّه عنه",
+    detail: "المادة الموسومة «واعدة» تُنصح، لا تُصنَّف مع ما يجب تجنّبه.",
+    test(ctx) {
+      const text = ctx.text || "";
+      if (!text) return { pass: true };
+      const kb = (ctx.kb && ctx.kb.herbs) || [];
+
+      for (const h of kb) {
+        if (!/واعدة/.test(h.verdictLabel || "")) continue;
+        /* الأسماء البديلة هي ما يُكتب فعلًا؛ الاسم الكامل نادرًا ما يظهر. */
+        const aliases = (ALIASES[h.id] || []).concat([h.ar]);
+        let at = -1;
+        for (const a of aliases) {
+          const i = text.indexOf(a);
+          if (i !== -1) { at = i; break; }
+        }
+        if (at === -1) continue;
+
+        /* ★ نفحص الجملة الحاوية للمادة فقط — لا نافذة واسعة.
+           النافذة الواسعة تلتقط «أنصحك» الخاصة بمادة أخرى، فيمر الخطأ. */
+        const before = text.slice(0, at);
+        const sentStart = Math.max(before.lastIndexOf("."), before.lastIndexOf("\n"), before.lastIndexOf("،")) + 1;
+        const after = text.slice(at);
+        const sentEnd = (() => {
+          const d = after.indexOf(".");
+          const n = after.indexOf("\n");
+          const c = after.indexOf("،");
+          const cands = [d, n, c].filter((x) => x !== -1);
+          return cands.length ? at + Math.min(...cands) : text.length;
+        })();
+        const clause = text.slice(sentStart, sentEnd);
+
+        const avoided = /تجنّب|لا تضع|لا تستخدم|لا أنصح|ابتعد|ابعد/.test(clause);
+        const recommended = /أنصحك|أوصي/.test(clause);
+
+        if (avoided && !recommended) {
+          return {
+            pass: false,
+            reason: `المادة «${h.ar}» واعدة، لكنها وُضعت في سياق التحذير بدل النصح.`,
+          };
+        }
       }
       return { pass: true };
     },
