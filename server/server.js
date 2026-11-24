@@ -159,6 +159,33 @@ function detectInjuryType(text) {
   return "laceration";
 }
 
+/* ---------------- تعليمات حالة الخطورة ----------------
+   النزيف الجاري أو الانفجار: ممنوع أي طب قديم، ممنوع السؤال.
+   الجرح العميق الذي توقف نزيفه: يُسمح بإرشاد تقليدي مشروط بعد طلب الطبيب. */
+function buildDangerInstruction(danger) {
+  const names = danger.map((d) => d.ar).join("، ");
+  const activeBleed = danger.some((d) => d.id === "severe-bleeding" || d.id === "blast");
+
+  if (activeBleed) {
+    return (
+      "فرز آلي: هذه الحالة طارئة — " + names +
+      ". رد بطريقة الطوارئ: طلب مساعدة طبية في أول سطر، إسعاف أولي فقط، بلا أعشاب، بلا سؤال."
+    );
+  }
+
+  return (
+    "فرز آلي: هذه الحالة خطيرة — " + names +
+    ".\nالترتيب الإلزامي:\n" +
+    "١) أول سطر: اذهب للطبيب/اطلب تقييمًا طبيًا (الجرح العميق يحتاج خياطة وتقييم كزاز).\n" +
+    "٢) إسعاف أولي: ضغط، تغطية، لا تنزع الطبقة الأولى المبللة، لا تضع أي مادة داخل الجرح.\n" +
+    "٣) بعد أن تذكر أن النزيف توقف: اذكر إرشادًا تقليديًا واحدًا أو اثنين مشروطًا، " +
+    "مع صيغة «بعد توقفه وليس بديلًا عن الطبيب».\n" +
+    "★ تحذير: لا تقترح أي مادة **داخل** الجرح العميق قبل الخياطة — خطر التلوث والحبس. " +
+    "الاقتراح يكون للجلد السليم حول الجرح أو بعد التقييم الطبي فقط.\n" +
+    "★ واذكر صراحةً ما يجب تجنّبه: المساحيق والزيوت والعسل داخل جرح عميق."
+  );
+}
+
 /* ---------------- بناء رسائل النموذج ---------------- */
 
 function buildMessages({ history, imageBase64, imageMime, danger, kbHerbs, webResults }) {
@@ -173,9 +200,7 @@ function buildMessages({ history, imageBase64, imageMime, danger, kbHerbs, webRe
     messages.push({
       role: "system",
       content:
-        "فرز آلي: هذه الحالة طارئة — " +
-        danger.map((d) => d.ar).join("، ") +
-        ". رد بطريقة الطوارئ: طلب مساعدة طبية في أول سطر، إسعاف أولي فقط، بلا أعشاب، بلا سؤال.",
+        buildDangerInstruction(danger),
     });
   }
 
@@ -616,4 +641,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, triage, findHerb, webLookup, pickHerbsForImage, findHerbImage, detectInjuryType };
+module.exports = { app, triage, findHerb, webLookup, pickHerbsForImage, findHerbImage, detectInjuryType, buildDangerInstruction };

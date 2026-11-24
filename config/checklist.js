@@ -9,7 +9,9 @@ const CHECKLIST_VERSION = "2026-11-23";
 /* حراسة الطوارئ — لا تُتجاوَز أبدًا */
 const DANGER_SAFE_WORDS = [
   "إسعاف", "إسعافًا", "الطبيب", "طبيب", "جهة طبية", "غادر", "اذهب",
-  "emergency", "ambulance", "doctor",
+  "تقييم طبي", "تقييمًا طبيًا", "تقييمي طبي", "خياطة", "الطوارئ", "طوارئ",
+  "مركز صحي", "عيادة", "جراح",
+  "emergency", "ambulance", "doctor", "hospital", "clinic",
 ];
 
 const DANGER_HERB_BLACKLIST = [
@@ -71,8 +73,19 @@ const GATES = [
         };
       }
 
+      /* ★ الحالة الخاصة التي طلبتها المستخدمة: جرح عميق/خطير بعد أن يتوقف النزيف
+         — يُسمح بإرشاد تقليدي مشروط، بشرط:
+           (١) طلب التقييم الطبي موجود،
+           (٢) ذكر صريح أن النزيف توقف،
+           (٣) المادة ليست «داخل» الجرح العميق.
+         النزيف الشديد الجاري أو الانفجار يبقى ممنوعًا مهما كان. */
+      const isBleedingActive = (ctx.danger || []).some((d) => d.id === "severe-bleeding" || d.id === "blast");
+      const saysStopped = /توقف النزيف|النزيف توقف|بعد توقف|بعد أن يتوقف|توقف النزف|النزف توقف/.test(t);
+      const needsDoctor = /طبيب|تقييم طبي|طوارئ|إسعاف|خياطة/.test(t);
+      const conditionalAllowed = !isBleedingActive && saysStopped && needsDoctor;
+
       const lower = t.toLowerCase();
-      const offender = DANGER_HERB_BLACKLIST.find((h) => {
+      const offender = !conditionalAllowed && DANGER_HERB_BLACKLIST.find((h) => {
         let from = 0;
         const needle = h.toLowerCase();
         while (true) {
@@ -89,6 +102,26 @@ const GATES = [
       });
       if (offender) {
         return { pass: false, reason: `حالة خطورة — ذُكر "${offender}" وهذا ممنوع في الطوارئ.` };
+      }
+
+      /* ★ حتى في الحالة المشروطة: وضع مادة «داخل» الجرح العميق ممنوع.
+         الخطر أن تُحبس البكتيريا أو تمنع التصريف قبل التقييم الطبي. */
+      if (conditionalAllowed) {
+        const insidePattern = /(داخل|في)\s+(الجرح|الجرح العميق|الجرح المفتوح)[^.\n]{0,50}(عسل|كركم|عشب|مسحوق|زيت|مرة|رمان|مرهم)/;
+        if (insidePattern.test(t)) {
+          return {
+            pass: false,
+            reason: "مادة موضوعة داخل جرح عميق — ممنوع قبل التقييم الطبي (خطر التلوث والحبس).",
+          };
+        }
+        // ولا يجوز تأخير الطبيب
+        const early = t.slice(0, 200);
+        if (!/طبيب|تقييم طبي|طوارئ|إسعاف|خياطة/.test(early)) {
+          return {
+            pass: false,
+            reason: "إرشاد تقليدي في جرح خطير بدون طلب تقييم طبي في أول الرد.",
+          };
+        }
       }
       return { pass: true };
     },
