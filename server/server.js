@@ -217,7 +217,7 @@ function buildMessages({ history, imageBase64, imageMime, danger, kbHerbs, webRe
             else if (/واعدة/.test(h.verdictLabel)) tier = "واعد — أوصِ بها مع بيان أن الدليل لم يكتمل";
             else if (/حيوان|محدودة/.test(h.verdictLabel)) tier = "أدلة حيوانية محدودة — اذكرها بحذر";
             else tier = "غير مثبتة — تحذير فقط";
-            return `- ${h.ar}\n  الطبقة: ${tier}\n  الفائدة: ${h.benefit || h.verdictNote || ""}\n  الاستخدام: ${h.advice}\n  الدليل: ${h.source}\n  التفصيل: ${h.evidence}\n  اللصيقة: ${h.verdictLabel}`;
+            return `- ${h.ar}\n  ما هي: ${h.what || ""}\n  الطبقة: ${tier}\n  الفائدة: ${h.benefit || h.verdictNote || ""}\n  الاستخدام: ${h.advice}\n  الدليل: ${h.source}\n  التفصيل: ${h.evidence}\n  اللصيقة: ${h.verdictLabel}`;
           })
           .join("\n") +
         "\n\nاكتب التوصية كوصفة: فعل، مدة، دليل. والمواد غير المثبتة اذكرها للتحذير لا للتوصية.",
