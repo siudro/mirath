@@ -38,6 +38,7 @@
     workflowCanvas: $("workflowCanvas"),
     checklistModal: $("checklistModal"),
     checklistList: $("checklistList"),
+    themeGrid: $("themeGrid"),
   };
 
   /* ───────── حالة ───────── */
@@ -50,6 +51,7 @@
     history: "mirath.history.v2",
     session: "mirath.session.v2",
     model: "mirath.model",
+    theme: "mirath.theme",
   };
 
   const MAX_TURNS_FOR_API = 8;
@@ -874,6 +876,45 @@
     renderWorkflow();
     openModal("workflowModal");
   });
+
+  /* ───────── المظهر (الخلفية) ───────── */
+
+  const THEMES = ["forest", "dusk", "ocean", "sand", "plum"];
+
+  function applyTheme(name) {
+    const t = THEMES.includes(name) ? name : "forest";
+    const body = document.body;
+    if (!body) return;
+    if (t === "forest") {
+      if (body.removeAttribute) body.removeAttribute("data-theme");
+    } else if (body.setAttribute) {
+      body.setAttribute("data-theme", t);
+    }
+    if (el.themeGrid) {
+      Array.from(el.themeGrid.querySelectorAll(".theme-swatch")).forEach((btn) => {
+        btn.setAttribute("aria-checked", String(btn.dataset.theme === t));
+      });
+    }
+  }
+
+  function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem(STORE.theme); } catch (_) {}
+    applyTheme(saved || "forest");
+
+    if (el.themeGrid) {
+      el.themeGrid.addEventListener("click", (e) => {
+        const btn = e.target.closest(".theme-swatch");
+        if (!btn) return;
+        const t = btn.dataset.theme;
+        applyTheme(t);
+        try { localStorage.setItem(STORE.theme, t); } catch (_) {}
+        toast("غُيّر المظهر: " + (btn.querySelector(".sw-name")?.textContent || t));
+      });
+    }
+  }
+
+  initTheme();
 
   /* ───────── تنبيه صغير ───────── */
 

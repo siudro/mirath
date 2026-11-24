@@ -198,7 +198,27 @@
     </select>
     <p class="hint">المفتاح يُضبط على الخادم عبر متغير البيئة <code>OPENAI_API_KEY</code>. لا يُخزَّن في المتصفح ولا في الكود.</p>
 
-    <p class="step-label">٢ — حالة الاتصال</p>
+    <p class="step-label">٢ — المظهر</p>
+    <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="لون الخلفية">
+      <button type="button" class="theme-swatch" data-theme="forest" aria-label="أخضر ليلي">
+        <span class="sw sw-forest"></span><span class="sw-name">أخضر ليلي</span>
+      </button>
+      <button type="button" class="theme-swatch" data-theme="dusk" aria-label="بنفسجي هادئ">
+        <span class="sw sw-dusk"></span><span class="sw-name">بنفسجي هادئ</span>
+      </button>
+      <button type="button" class="theme-swatch" data-theme="ocean" aria-label="أزرق بحري">
+        <span class="sw sw-ocean"></span><span class="sw-name">أزرق بحري</span>
+      </button>
+      <button type="button" class="theme-swatch" data-theme="sand" aria-label="رملي فاتح">
+        <span class="sw sw-sand"></span><span class="sw-name">رملي فاتح</span>
+      </button>
+      <button type="button" class="theme-swatch" data-theme="plum" aria-label="عنابي">
+        <span class="sw sw-plum"></span><span class="sw-name">عنابي</span>
+      </button>
+    </div>
+    <p class="hint">يُحفظ في متصفحك فقط. لا يغيّر أي شيء في المحادثة أو البيانات.</p>
+
+    <p class="step-label">٣ — حالة الاتصال</p>
     <p id="keyStatus" class="key-status" hidden></p>
     <div class="diag-row">
       <button id="diagBtn" class="diag-btn" type="button">اختبار الاتصال</button>

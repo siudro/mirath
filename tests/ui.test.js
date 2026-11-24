@@ -356,6 +356,29 @@ module.exports = ({ test }) => {
     assert.ok(src.includes("get_display"), "لا يعالج اتجاه RTL");
   });
 
+  /* ═══ مبدّل المظهر ═══ */
+
+  test("★ مبدّل الخلفية موجود في الإعدادات", () => {
+    const html = read("public/index.html");
+    assert.ok(html.includes('id="themeGrid"'), "شبكة المظاهر مفقودة");
+    for (const t of ["forest", "dusk", "ocean", "sand", "plum"]) {
+      assert.ok(html.includes(`data-theme="${t}"`), `المظهر ${t} مفقود`);
+    }
+  });
+
+  test("★ لكل مظهر قاعدة CSS للخلفية", () => {
+    const css = read("public/style.css");
+    for (const t of ["dusk", "ocean", "sand", "plum"]) {
+      assert.ok(css.includes(`body[data-theme="${t}"]`), `CSS للمظهر ${t} مفقود`);
+    }
+  });
+
+  test("★ المظهر يُحفظ ويُستعاد", () => {
+    const ui = read("public/ui.js");
+    assert.ok(ui.includes("mirath.theme"), "مفتاح التخزين مفقود");
+    assert.ok(ui.includes("applyTheme"), "دالة التطبيق مفقودة");
+  });
+
   test("README يشرح التشغيل والنشر", () => {
     const r = read("README.md");
     assert.ok(/npm start|node server\/server\.js/.test(r));
