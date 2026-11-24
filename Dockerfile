@@ -4,9 +4,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# اعتماديات الإنتاج فقط
-COPY package.json ./
-RUN npm install --omit=dev --no-audit --no-fund
+# اعتماديات الإنتاج فقط — مع قفل النسخ لنتيجة قابلة للتكرار
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
 
 # الكود
 COPY . .
