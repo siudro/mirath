@@ -4,6 +4,8 @@
 "use strict";
 
 const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
 const {
   HERBS,
   EVIDENCE_SOURCES,
@@ -135,6 +137,49 @@ module.exports = ({ test }) => {
     const required = ["triage", "read-image", "lookup", "websearch", "verify", "herb-image", "compose"];
     const ids = TOOL_CATALOG.map((t) => t.id);
     for (const r of required) assert.ok(ids.includes(r), `أداة مفقودة: ${r}`);
+  });
+
+  /* ═══ ربط القاعدة بسجل البحث ═══
+     المستخدم طلب دليلًا على أن البحث جرى فعلًا. هذا الاختبار يضمن
+     أن كل مادة تستشهد بمصدر قابل للتحقق (PMID أو جهة رسمية). */
+
+  test("★ كل مادة تستشهد بمصدر قابل للتحقق", () => {
+    for (const h of HERBS) {
+      const src = h.source + " " + h.evidence;
+      const hasPMID = /PMID\s?\d{6,}/.test(src);
+      const hasOfficial = /WHO|Cochrane|EMA\/HMPC|DailyMed|منظمة الصحة|مراجعة|تحليل|مراجعة منهجية/.test(src);
+      /* «لا يوجد مصدر» نتيجة بحث صريحة ومسجّلة — وليست افتقارًا للتوثيق. */
+      const noEvidenceFound = /صفر نتيجة|لا يوجد مصدر بحثي/.test(h.source);
+      assert.ok(hasPMID || hasOfficial || noEvidenceFound,
+        `${h.id}: لا PMID ولا جهة رسمية ولا توثيق «لا دليل»`);
+    }
+  });
+
+  test("★ المواد الحيوانية موسومة صراحةً", () => {
+    const animalOnly = ["pomegranate-peel", "centella", "hypericum", "neem"];
+    for (const id of animalOnly) {
+      const h = HERBS.find((x) => x.id === id);
+      assert.ok(h, id + " مفقود");
+      const t = (h.evidence + " " + h.verdictLabel + " " + h.notes).toLowerCase();
+      assert.ok(/فئران|حيوان|preclinical|بشرية محدودة|غير مثبتة/.test(t),
+        `${id}: لم يُوسم كدليل حيواني رغم أنه كذلك`);
+    }
+  });
+
+  test("★ سجل البحث موجود ويغطي كل مادة", () => {
+    const audit = fs.readFileSync(path.join(__dirname, "..", "docs", "EVIDENCE-AUDIT.md"), "utf8");
+    for (const h of HERBS) {
+      // نطابق الجزء المميّز من الاسم: أول كلمة أو كلمتين، مع تجاهل «— الإنجليزية».
+      const base = h.ar.split("—")[0].trim();
+      const key = base.split(/[()]/)[0].trim().split(" ").slice(0, 2).join(" ");
+      assert.ok(audit.includes(base) || audit.includes(key) || audit.includes(h.id),
+        `${h.id}: غير مذكور في سجل البحث (بحثنا عن "${key}")`);
+    }
+  });
+
+  test("★ الألوة تستشهد بالتحليل التلوي ٢٠٢٤ لا بـ Cochrane وحده", () => {
+    const h = HERBS.find((x) => x.id === "aloe");
+    assert.ok(/38605441/.test(h.source + h.evidence), "تحليل ٢٠٢٤ مفقود");
   });
 
   test("إصدار القاعدة معلن", () => {
