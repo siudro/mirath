@@ -44,6 +44,9 @@ const ALIASES = {
   centella: ["الزنبق الهندي", "سنتيلا", "سنتیلا", "آسياتيكا", "Centella", "centella", "Gotu Kola"],
   neem: ["النيم", "نيم", "أزادراختا", "Neem", "neem"],
   manuka: ["المانوكا", "مانوكا", "Manuka", "manuka"],
+  "tea-tree": ["شجرة الشاي", "زيت شجرة الشاي", "tea tree", "teatree", "melaleuca"],
+  thyme: ["الزعتر", "زعتر", "thyme", "Thymus"],
+  "green-tea": ["الشاي الأخضر", "شاي أخضر", "green tea", "camellia"],
 };
 
 /* بوابات التحقق بترتيبها. لكل بوابة: id، اسم، دالة. */
