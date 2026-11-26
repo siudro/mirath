@@ -14,6 +14,7 @@ from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph)
+from reportlab.graphics.shapes import Drawing, Rect, String, Line, Polygon
 from arabic_reshaper import reshape
 from bidi.algorithm import get_display
 
@@ -89,7 +90,38 @@ def table(rows, widths):
     return t
 
 
-def build(out):
+
+def workflow_diagram(width=158 * mm, height=30 * mm):
+    """مخطط مسار الوكيل — يُرسم بالعربية بعد التشكيل."""
+    d = Drawing(width, height)
+    boxes = [
+        ("رسالة+صورة", "#e8f1f7"),
+        ("فرز الخطورة", "#fdeaea"),
+        ("قاعدة الأدلة", "#eef7ee"),
+        ("الكاتب", "#eef2fa"),
+        ("المدقّق", "#fdf6e3"),
+        ("١٣ بوابة", "#fdeaea"),
+        ("إسعاف+نصح+تحذير", "#eef7ee"),
+    ]
+    bw, bh, gap = 20 * mm, 13 * mm, 3.2 * mm
+    total = len(boxes) * bw + (len(boxes) - 1) * gap
+    x0 = (width - total) / 2
+    y = height / 2 - bh / 2 + 1 * mm
+    prev = None
+    for i, (label, col) in enumerate(boxes):
+        x = x0 + i * (bw + gap)
+        d.add(Rect(x, y, bw, bh, fillColor=colors.HexColor(col),
+                   strokeColor=colors.HexColor("#b8c8d4"), strokeWidth=0.7, rx=2, ry=2))
+        d.add(String(x + bw / 2, y + bh / 2 - 2, ar(label), fontName="A", fontSize=6.2,
+                     textAnchor="middle", fillColor=INK))
+        if prev is not None:
+            d.add(Line(prev, y + bh / 2, x, y + bh / 2,
+                       strokeColor=colors.HexColor("#8fa9bb"), strokeWidth=1.0))
+        prev = x + bw
+    return d
+
+
+def build(out, chat_url=None, bot_url=None):
     doc = SimpleDocTemplate(out, pagesize=A4, rightMargin=22 * mm, leftMargin=22 * mm,
                             topMargin=20 * mm, bottomMargin=20 * mm, title="ميراث — WAICY 2026")
     f = []
@@ -108,6 +140,11 @@ def build(out):
     f.append(P("أربعة عوامل تغيّر مضمون كل رد وترتيبه: عمر المصاب؛ ووجود حالة ذات صلة كالسكري أو الحمل أو ضعف المناعة أو التقدّم في السن؛ وبُعد المسافة عن الرعاية الطبية؛ وطبيعة الجرح وموضعه وحالة النزيف. طفل خدش ركبته، وبالغ مصاب بالسكري في قدمه، وشخص في منطقة نزاع يده تنزف — يتلقى كل واحد منهم جوابًا مختلفًا جوهريًا، لأن الجرح نفسه يحمل خطرًا مختلفًا لكل منهم."))
     f.append(P("مِيراث لا يستجوب مستخدمه قبل المساعدة. يعطي الإرشاد أولًا، ويسأل سؤالًا توضيحيًا واحدًا على الأكثر بعده، لأن من ينزف لا يملك الوقت ولا الصفاء لمقابلة استقبال."))
 
+    f.append(NUM("مسار العمل"))
+    f.append(P("كل رد يمرّ بسبع مراحل. الثلاث الأخيرة هي التي تميّز مِيراث عن نشرة إسعاف: مدقّق مستقل يقرأ المسودة، ثم ثلاث عشرة بوابة آلية تفحصها، وبعدها فقط تُسلَّم."))
+    f.append(workflow_diagram())
+    f.append(P("شكل ١. مسار الوكيل. لا يصل شيء إلى المستخدم قبل اجتياز البوابات الثلاث عشرة.", "cp"))
+
     f.append(NUM("ما يفعله مِيراث"))
     for t in [
         "يقرأ وصف الجرح <b>أو صورة له</b>، ويصرّح بما لا تستطيع الصورة إثباته: العمق، والتلوث، ودرجة الخطورة.",
@@ -125,9 +162,9 @@ def build(out):
 
     f.append(P("ثالثًا: سجل المحادثة ورابط الشات بوت", "h"))
     f.append(P("سجل المحادثة (١٠ رسائل أو أكثر، النسخة النهائية):", "b"))
-    f.append(P("[يُضاف الرابط]"))
+    f.append(P(chat_url or "[يُضاف الرابط]"))
     f.append(P("رابط الشات بوت:", "b"))
-    f.append(P("[يُضاف الرابط]"))
+    f.append(P(bot_url or "[يُضاف الرابط]"))
 
     f.append(P("رابعًا: عملية التصميم التكراري", "h"))
     f.append(NUM("الفكرة"))

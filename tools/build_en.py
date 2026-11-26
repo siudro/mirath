@@ -13,6 +13,8 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (SimpleDocTemplate, Spacer, PageBreak, Table, TableStyle, Paragraph)
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.shapes import (Rect, String, Line, Circle, Polygon, Group)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -74,7 +76,44 @@ def table(rows, widths):
     return t
 
 
-def build(out):
+
+def workflow_diagram(width=158 * mm, height=30 * mm):
+    """مخطط مسار الوكيل — ثلاث طبقات كما في مستند Safeline."""
+    d = Drawing(width, height)
+    boxes = [
+        ("User message\n+ photo", "#e8f1f7"),
+        ("Triage\n(danger rules)", "#fdeaea"),
+        ("Evidence lookup\n20 remedies", "#eef7ee"),
+        ("Writer\nGPT-6 Luna", "#eef2fa"),
+        ("Independent\nverifier", "#fdf6e3"),
+        ("13 safety gates", "#fdeaea"),
+        ("First aid +\nrecommendation +\nwarning", "#eef7ee"),
+    ]
+    bw, bh, gap = 20 * mm, 13 * mm, 3.2 * mm
+    total = len(boxes) * bw + (len(boxes) - 1) * gap
+    x0 = (width - total) / 2
+    y = height / 2 - bh / 2 + 1 * mm
+    prev = None
+    for i, (label, col) in enumerate(boxes):
+        x = x0 + i * (bw + gap)
+        d.add(Rect(x, y, bw, bh, fillColor=colors.HexColor(col),
+                   strokeColor=colors.HexColor("#b8c8d4"), strokeWidth=0.7, rx=2, ry=2))
+        ty = y + bh - 4.5 * mm
+        for line in label.split("\n"):
+            d.add(String(x + bw / 2, ty, line, fontName="S", fontSize=6.2,
+                         textAnchor="middle", fillColor=INK))
+            ty -= 3.2 * mm
+        if prev is not None:
+            d.add(Line(prev, y + bh / 2, x, y + bh / 2,
+                       strokeColor=colors.HexColor("#8fa9bb"), strokeWidth=1.0))
+            d.add(Polygon([x - 0, y + bh / 2, x - 2.4, y + bh / 2 + 1.6,
+                           x - 2.4, y + bh / 2 - 1.6],
+                          fillColor=colors.HexColor("#8fa9bb"), strokeColor=None))
+        prev = x + bw
+    return d
+
+
+def build(out, chat_url=None, bot_url=None):
     doc = SimpleDocTemplate(out, pagesize=A4,
                             rightMargin=22 * mm, leftMargin=22 * mm,
                             topMargin=20 * mm, bottomMargin=20 * mm,
@@ -96,6 +135,11 @@ def build(out):
     f.append(P("Four variables change the substance and ordering of every response: the age of the injured person; the presence of a relevant condition such as diabetes, pregnancy, immune compromise, or advanced age; the distance from medical care; and the nature, site, and bleeding state of the wound. A child with a knee abrasion, a diabetic adult with a foot wound, and a person in a conflict zone with a bleeding hand receive materially different answers, because the same wound carries different risk for each."))
     f.append(P("Mirath does not interrogate its user before helping. It gives guidance first and asks at most one clarifying question afterwards, because a person who is bleeding has neither the time nor the composure for an intake interview."))
 
+    f.append(P("Workflow", "num"))
+    f.append(P("Every reply passes through seven stages. The last three are what distinguish Mirath from a first-aid leaflet: a dedicated verifier reads the draft, thirteen automated gates inspect it, and only then is it delivered."))
+    f.append(workflow_diagram())
+    f.append(P("Figure 1. The agent pipeline. Nothing reaches the user without passing all thirteen gates.", "cap"))
+
     f.append(P("What Mirath does", "num"))
     for t in [
         "Reads a wound description <b>or a photograph</b>, and states plainly what a photograph cannot establish — depth, contamination, and severity.",
@@ -115,9 +159,9 @@ def build(out):
     # III
     f.append(P("III. &nbsp;Chat History and Chatbot Link", "sec"))
     f.append(P("Chat history (10+ exchanged messages, final edition):", "body"))
-    f.append(P("[URL to be inserted]"))
+    f.append(P(chat_url or "[URL to be inserted]"))
     f.append(P("Live chatbot:", "body"))
-    f.append(P("[URL to be inserted]"))
+    f.append(P(bot_url or "[URL to be inserted]"))
 
     # IV
     f.append(P("IV. &nbsp;Iterative AI Design Process", "sec"))
