@@ -379,6 +379,31 @@ module.exports = ({ test }) => {
     assert.ok(ui.includes("applyTheme"), "دالة التطبيق مفقودة");
   });
 
+  /* ═══ مستند التسليم ═══ */
+
+  test("★ مستند التسليم PDF موجود بالاسم الصحيح", () => {
+    const pdf = path.join(ROOT, "docs", "LLM_Mirath.pdf");
+    assert.ok(fs.existsSync(pdf), "LLM_Mirath.pdf مفقود");
+    const buf = fs.readFileSync(pdf);
+    assert.strictEqual(buf.subarray(0, 4).toString(), "%PDF");
+    assert.ok(buf.length > 15000, "الملف صغير جدًا");
+  });
+
+  test("★ مستند التسليم يحتوي الأقسام التسعة", () => {
+    const src = fs.readFileSync(path.join(ROOT, "tools", "build_submission.py"), "utf8");
+    for (const n of ["الخدمة", "الدافع", "سجل المحادثة", "الشات بوت",
+                     "التصميم التكراري", "الحدود", "التطور المستقبلي",
+                     "الخاتمة", "المراجع"]) {
+      assert.ok(src.includes(n), `قسم مفقود: ${n}`);
+    }
+  });
+
+  test("★ المراجع تستشهد بـ PMID", () => {
+    const src = fs.readFileSync(path.join(ROOT, "tools", "build_submission.py"), "utf8");
+    const pmids = src.match(/PMID \d{6,}/g) || [];
+    assert.ok(pmids.length >= 8, `PMID قليل: ${pmids.length}`);
+  });
+
   test("README يشرح التشغيل والنشر", () => {
     const r = read("README.md");
     assert.ok(/npm start|node server\/server\.js/.test(r));
