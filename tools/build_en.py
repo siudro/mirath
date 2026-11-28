@@ -159,8 +159,9 @@ def build(out, chat_url=None, bot_url=None):
 
     # III
     f.append(P("III. &nbsp;Chat History and Chatbot Link", "sec"))
-    f.append(P("Chat history (10+ exchanged messages, final edition):", "body"))
-    f.append(P(chat_url or bot_url))
+    f.append(P("A transcript of the final session — ten questions and ten replies, twenty-two messages in total — is attached to this submission as <i>Mirath_ChatHistory_ar.pdf</i>. It was produced by replaying each question against the live assistant, and it records the assistant's own error analysis: four failures identified and corrected during the session.", "body"))
+    f.append(P("Chat history document:", "body"))
+    f.append(P("[attached: Mirath_ChatHistory_ar.pdf]"))
     f.append(P("Live chatbot:", "body"))
     f.append(P(bot_url))
     f.append(P("<i>Note: the hosted instance currently runs an earlier build and exposes ten remedies rather than the full twenty documented here. The repository at github.com/siudro/mirath contains the complete implementation.</i>", "cap"))
