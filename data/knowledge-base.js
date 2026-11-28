@@ -63,7 +63,7 @@ const HERBS = [
     appliesTo: ["abrasion", "laceration"],
     evidence:
       "مراجعة 19 تجربة سريرية بشرية (Journal of Cosmetic Dermatology, 2025، PubMed 41388841)، منها 14 عشوائية محكمة — نتائج واعدة، لكن اختلاف المستحضرات والجرعات يمنع توصية موحدة.",
-    source: "Journal of Cosmetic Dermatology 2025 / PubMed 41388841",
+    source: "J Cosmet Dermatol 2025 — PMID 41388841",
     link: "https://pubmed.ncbi.nlm.nih.gov/41388841/",
     notes: "لا يُنصح بوضع مسحوق الكركم المنزلي على الجروح المفتوحة.",
     imageQuery: "turmeric root powder",
