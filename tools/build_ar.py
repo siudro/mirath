@@ -122,6 +122,7 @@ def workflow_diagram(width=158 * mm, height=30 * mm):
 
 
 def build(out, chat_url=None, bot_url=None):
+    bot_url = bot_url or "https://mirath-production-a1eae3b5.up.railway.app/"
     doc = SimpleDocTemplate(out, pagesize=A4, rightMargin=22 * mm, leftMargin=22 * mm,
                             topMargin=20 * mm, bottomMargin=20 * mm, title="ميراث — WAICY 2026")
     f = []
@@ -162,9 +163,10 @@ def build(out, chat_url=None, bot_url=None):
 
     f.append(P("ثالثًا: سجل المحادثة ورابط الشات بوت", "h"))
     f.append(P("سجل المحادثة (١٠ رسائل أو أكثر، النسخة النهائية):", "b"))
-    f.append(P(chat_url or "[يُضاف الرابط]"))
+    f.append(P(chat_url or bot_url))
     f.append(P("رابط الشات بوت:", "b"))
-    f.append(P(bot_url or "[يُضاف الرابط]"))
+    f.append(P(bot_url))
+    f.append(P("<i>ملاحظة: النسخة المنشورة تعمل ببناء أقدم وتعرض عشر مواد بدل العشرين الموثقة هنا. المستودع على github.com/siudro/mirath يحتوي التنفيذ الكامل.</i>", "cp"))
 
     f.append(P("رابعًا: عملية التصميم التكراري", "h"))
     f.append(NUM("الفكرة"))

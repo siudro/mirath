@@ -114,6 +114,7 @@ def workflow_diagram(width=158 * mm, height=30 * mm):
 
 
 def build(out, chat_url=None, bot_url=None):
+    bot_url = bot_url or "https://mirath-production-a1eae3b5.up.railway.app/"
     doc = SimpleDocTemplate(out, pagesize=A4,
                             rightMargin=22 * mm, leftMargin=22 * mm,
                             topMargin=20 * mm, bottomMargin=20 * mm,
@@ -159,9 +160,10 @@ def build(out, chat_url=None, bot_url=None):
     # III
     f.append(P("III. &nbsp;Chat History and Chatbot Link", "sec"))
     f.append(P("Chat history (10+ exchanged messages, final edition):", "body"))
-    f.append(P(chat_url or "[URL to be inserted]"))
+    f.append(P(chat_url or bot_url))
     f.append(P("Live chatbot:", "body"))
-    f.append(P(bot_url or "[URL to be inserted]"))
+    f.append(P(bot_url))
+    f.append(P("<i>Note: the hosted instance currently runs an earlier build and exposes ten remedies rather than the full twenty documented here. The repository at github.com/siudro/mirath contains the complete implementation.</i>", "cap"))
 
     # IV
     f.append(P("IV. &nbsp;Iterative AI Design Process", "sec"))
